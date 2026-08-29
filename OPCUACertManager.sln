@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.9.12120.119 stable
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "OPCUACertManager", "OPCUACertManager.pyproj", "{9030DE3F-DAA3-4E21-99B5-6DD61209372E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9030DE3F-DAA3-4E21-99B5-6DD61209372E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9030DE3F-DAA3-4E21-99B5-6DD61209372E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6B7EE0E7-250B-4EDC-B8D6-ABE8535D29C1}
+	EndGlobalSection
+EndGlobal

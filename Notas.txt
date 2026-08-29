@@ -1,0 +1,3 @@
+
+en src/ca.py funciuon: generar_clave_ca se pone por defecto el valor de la variable "tamano_clave" a "2048", Aqui se deberia elegir el valor por formulario. y poner 2048si no se proporciona un valor al llamar a la función. Esto asegura que siempre haya una clave predeterminada para la autoridad certificadora (CA) en caso de que no se especifique una clave personalizada.
+ tambien mirar construir_certificado_ca, donde se inicializan lso valores de "nombre_comun", "organizacion", "unidad_organizativa", "pais" y "estado" a valores predeterminados. Esto permite que la función pueda generar un certificado CA incluso si no se proporcionan estos valores, asegurando que siempre haya información básica para el certificado.
