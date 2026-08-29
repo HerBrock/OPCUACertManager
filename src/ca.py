@@ -1,55 +1,62 @@
 ﻿"""
-Módulo para crear una CA (Certificate Authority) propia.
+Module to create a custom CA (Certificate Authority).
 
-Esta CA se usará después para firmar certificados de servidor y cliente OPC UA.
+This CA will be used later to sign OPC UA server and client certificates.
 """
 
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Tuple
 
-from .utils import guardar_clave_y_certificado_en_pem
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import NameOID
+
+from .utils import save_key_and_cert_to_pem
 
 
-def generar_clave_ca(tamano_clave: int = 2048) -> rsa.RSAPrivateKey:
+def generate_ca_key(key_size: int = 2048) -> rsa.RSAPrivateKey:
     """
-    Genera una clave privada RSA para la CA.
+    Generate an RSA private key for the CA.
     """
     return rsa.generate_private_key(
         public_exponent=65537,
-        key_size=tamano_clave,
+        key_size=key_size,
     )
 
 
-def construir_certificado_ca(
+def build_ca_certificate(
     private_key: rsa.RSAPrivateKey,
-    nombre_pais: str = "ES",
-    nombre_estado: str = "Madrid",
-    nombre_localidad: str = "Madrid",
-    nombre_organizacion: str = "MiEmpresa",
-    nombre_comun: str = "MiCA OPC UA",
-    dias_valido: int = 3650,
+    country_name: str = "ES",
+    state_name: str = "Madrid",
+    locality_name: str = "Madrid",
+    organization_name: str = "MiEmpresa",
+    common_name: str = "My OPC UA CA",
+    validity_days: int = 3650,
 ) -> x509.Certificate:
     """
-    Construye un certificado X.509 para la CA.
+    Build a self-signed X.509 certificate for the CA.
     """
-    subject = x509.Name([
-        x509.NameAttribute(NameOID.COUNTRY_NAME, nombre_pais),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, nombre_estado),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, nombre_localidad),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, nombre_organizacion),
-        x509.NameAttribute(NameOID.COMMON_NAME, nombre_comun),
-    ])
+    subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COUNTRY_NAME, country_name),
+            x509.NameAttribute(
+                NameOID.STATE_OR_PROVINCE_NAME,
+                state_name,
+            ),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, locality_name),
+            x509.NameAttribute(
+                NameOID.ORGANIZATION_NAME,
+                organization_name,
+            ),
+            x509.NameAttribute(NameOID.COMMON_NAME, common_name),
+        ]
+    )
 
-    issuer = subject  # autofirmado
+    # A root CA is self-signed.
+    issuer = subject
 
-    ahora = datetime.now(timezone.utc)
-    not_valid_before = ahora
-    not_valid_after = ahora + timedelta(days=dias_valido)
+    now = datetime.now(timezone.utc)
 
     builder = (
         x509.CertificateBuilder()
@@ -57,17 +64,20 @@ def construir_certificado_ca(
         .issuer_name(issuer)
         .public_key(private_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(not_valid_before)
-        .not_valid_after(not_valid_after)
+        .not_valid_before(now)
+        .not_valid_after(now + timedelta(days=validity_days))
     )
 
-    # Basic Constraints: es una CA
+    # This certificate is allowed to act as a CA.
     builder = builder.add_extension(
-        x509.BasicConstraints(ca=True, path_length=None),
+        x509.BasicConstraints(
+            ca=True,
+            path_length=None,
+        ),
         critical=True,
     )
 
-    # Key Usage: puede firmar certificados y CRL
+    # This key can sign certificates and certificate revocation lists.
     builder = builder.add_extension(
         x509.KeyUsage(
             digital_signature=True,
@@ -83,43 +93,51 @@ def construir_certificado_ca(
         critical=True,
     )
 
-    cert = builder.sign(private_key, hashes.SHA256())
-    return cert
-
-
-def crear_ca(
-    ruta_carpeta_ca: str | Path = "certs/ca",
-    tamano_clave: int = 2048,
-    nombre_pais: str = "ES",
-    nombre_estado: str = "Madrid",
-    nombre_localidad: str = "Madrid",
-    nombre_organizacion: str = "MiEmpresa",
-    nombre_comun: str = "MiCA OPC UA",
-    dias_valido: int = 3650,
-) -> Tuple[rsa.RSAPrivateKey, x509.Certificate]:
-    """
-    Función de alto nivel que:
-    1. Genera la clave de la CA.
-    2. Construye el certificado de la CA.
-    3. Guarda ambos en disco.
-
-    Devuelve la clave y el certificado por si se quieren usar en memoria.
-    """
-    private_key = generar_clave_ca(tamano_clave)
-    cert = construir_certificado_ca(
+    return builder.sign(
         private_key,
-        nombre_pais=nombre_pais,
-        nombre_estado=nombre_estado,
-        nombre_localidad=nombre_localidad,
-        nombre_organizacion=nombre_organizacion,
-        nombre_comun=nombre_comun,
-        dias_valido=dias_valido,
+        hashes.SHA256(),
     )
-    guardar_clave_y_certificado_en_pem(
-        private_key,
-        cert,
-        ruta_carpeta=ruta_carpeta_ca,
-        nombre_clave="ca_key.pem",
-        nombre_cert="ca_cert.pem",
+
+
+def create_ca(
+    ca_folder: str | Path = "certs/ca",
+    key_size: int = 2048,
+    country_name: str = "ES",
+    state_name: str = "Madrid",
+    locality_name: str = "Madrid",
+    organization_name: str = "MiEmpresa",
+    common_name: str = "My OPC UA CA",
+    validity_days: int = 3650,
+) -> tuple[rsa.RSAPrivateKey, x509.Certificate]:
+    """
+    Create and save a complete Certificate Authority.
+
+    The function:
+    1. Generates the CA private key.
+    2. Builds the self-signed CA certificate.
+    3. Saves both files to disk.
+
+    Returns:
+        A tuple containing the private key and the certificate.
+    """
+    private_key = generate_ca_key(key_size)
+
+    certificate = build_ca_certificate(
+        private_key=private_key,
+        country_name=country_name,
+        state_name=state_name,
+        locality_name=locality_name,
+        organization_name=organization_name,
+        common_name=common_name,
+        validity_days=validity_days,
     )
-    return private_key, cert
+
+    save_key_and_cert_to_pem(
+        private_key=private_key,
+        cert=certificate,
+        folder_path=ca_folder,
+        key_filename="ca_key.pem",
+        cert_filename="ca_cert.pem",
+    )
+
+    return private_key, certificate

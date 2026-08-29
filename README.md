@@ -1,174 +1,276 @@
-# OpcUaCertApp
+﻿# OPC UA Certificate Generator
 
-Aplicaci�n en Python para crear certificados X.509 destinados a OPC UA.
+A Python application to create X.509 certificates for OPC UA.
 
-## Objetivo de aprendizaje
+This project can generate:
 
-Este proyecto est� dise�ado para aprender:
+- A self-signed Certificate Authority (CA).
+- CA-signed OPC UA server certificates.
+- CA-signed OPC UA client certificates.
+- PEM private-key and certificate files.
 
-- **Python 3.14**: estructura de m�dulos, funciones, clases, manejo de archivos, etc.
-- **Visual Studio 2026**: creaci�n de proyectos Python, ejecuci�n, depuraci�n.
-- **GitHub**: control de versiones, commits, push a repositorio remoto.
-- **Certificados X.509 y PKI**:
-  - Qu� es una CA (Certificate Authority).
-  - C�mo se crean certificados de servidor y cliente.
-  - Extensiones b�sicas: `BasicConstraints`, `KeyUsage`, `ExtendedKeyUsage`, `SubjectAlternativeName`.
-  - Uso de certificados en OPC UA (autenticaci�n y cifrado).
+> This application is intended for learning and test environments. Do not use its default configuration as-is for production environments.
 
-## Requisitos
+## Learning Goals
 
-- Python 3.14 (o superior).
-- Visual Studio 2022 o 2026 con soporte para Python.
-- Conexi�n a Internet (para instalar paquetes).
-- Cuenta de GitHub (para subir el proyecto).
+This project was created to learn:
 
-## Instalaci�n
+- Python 3.14.
+- Visual Studio 2026.
+- Git and GitHub.
+- X.509 certificates and Public Key Infrastructure (PKI).
+- OPC UA certificate concepts.
+- Basic graphical user interfaces with `tkinter`.
 
-1. Clona o descarga este repositorio:
+## Features
 
-   ```bash
-   git clone <URL_DE_TU_REPOSITORIO>
-   cd OpcUaCertApp
-   ```
+- Create a self-signed Certificate Authority.
+- Create OPC UA server certificates signed by the CA.
+- Create OPC UA client certificates signed by the CA.
+- Choose RSA key size: 2048 or 4096 bits.
+- Configure certificate subject fields:
+  - Country
+  - State or Province
+  - Locality
+  - Organization
+  - Common Name (CN)
+- Add Subject Alternative Names (SAN), including:
+  - DNS names, for example `DNS:opcua-server.local`
+  - IP addresses, for example `IP:127.0.0.1`
+- Store default values in `config.json`.
+- Use either a console application or a graphical application.
 
-2. (Opcional) Crea un entorno virtual:
+## Requirements
 
-   ```bash
-   python -m venv venv
-   # Windows
-   venv\Scripts\activate
-   # Linux / macOS
-   source venv/bin/activate
-   ```
+- Python 3.14 or later.
+- Visual Studio 2026 with Python support.
+- Internet connection to install Python packages.
+- A GitHub account if you want to upload the project to GitHub.
 
-3. Instala las dependencias:
+## Installation
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 1. Clone the repository
 
-   El archivo `requirements.txt` contiene:
+```bash
+git clone <YOUR_REPOSITORY_URL>
+cd CertApp
+```
 
-   ```text
-   cryptography
-   ```
+Replace `<YOUR_REPOSITORY_URL>` with your GitHub repository URL.
 
-## Uso
+### 2. Create a virtual environment
 
-### Aplicaci�n de consola
+Creating a virtual environment is recommended because it keeps this project's Python packages separate from the rest of the computer.
 
-Ejecuta:
+```bash
+python -m venv .venv
+```
+
+Activate it on Windows:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+### 3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+The project uses the `cryptography` package to create and save X.509 certificates.
+
+## Running the Application
+
+### Console application
+
+Run:
 
 ```bash
 python app_console.py
 ```
 
-Ver�s un men� como:
+The console menu allows you to:
 
 ```text
-=== Generador de certificados OPC UA ===
-1) Crear CA
-2) Crear certificado de servidor
-3) Crear certificado de cliente
-4) Editar configuraci�n por defecto
-5) Salir
+=== OPC UA Certificate Generator ===
+1) Create CA
+2) Create server certificate
+3) Create client certificate
+4) Edit default configuration
+5) Exit
 ```
 
-Sigue las instrucciones en pantalla.
+### Graphical application
 
-### Aplicaci�n con interfaz gr�fica (tkinter)
-
-Ejecuta:
+Run:
 
 ```bash
 python app_gui.py
 ```
 
-Se abrir� una ventana con pesta�as:
+The graphical application uses `tkinter` and contains these tabs:
 
-- **Crear CA**
-- **Crear servidor**
-- **Crear cliente**
-- **Configuraci�n**
+- **Create CA**
+- **Create Server**
+- **Create Client**
+- **Configuration**
 
-Rellena los campos y pulsa el bot�n correspondiente.
+## How Certificate Creation Works
 
-## Configuraci�n por defecto
+The application follows this process:
 
-El archivo `config.json` contiene valores por defecto para:
+1. Create a **Certificate Authority**.
+2. The CA creates its own private key.
+3. The CA creates a self-signed CA certificate.
+4. Create a server or client private key.
+5. Create the server or client certificate.
+6. Sign the server or client certificate using the CA private key.
 
-- Pa�s, estado, localidad, organizaci�n.
-- Nombres comunes (CN) para CA, servidor y cliente.
-- D�as de validez.
-
-Puedes editarlo directamente o usar la opci�n **�Editar configuraci�n por defecto�** en la app de consola o la pesta�a **�Configuraci�n�** en la app gr�fica.
-
-## Estructura del proyecto
+The trust relationship is:
 
 ```text
-OpcUaCertApp/
-  .gitignore
-  README.md
-  requirements.txt
-  config.json
-  app_console.py
-  app_gui.py
-
-  src/
-    __init__.py
-    ca.py
-    server_cert.py
-    client_cert.py
-    utils.py
-    config.py
-
-  tests/
-    __init__.py
-    test_certs.py
-
-  certs/
-    ca/
-      ca_key.pem       (clave privada de la CA, no se sube si .gitignore est� activo)
-      ca_cert.pem      (certificado de la CA)
-    server/
-      server_key.pem   (clave privada del servidor)
-      server_cert.pem  (certificado del servidor)
-    client/
-      client_key.pem   (clave privada del cliente)
-      client_cert.pem  (certificado del cliente)
+CA Certificate
+    |
+    +-- Server Certificate
+    |
+    +-- Client Certificate
 ```
 
-## Subir el proyecto a GitHub
+A system that trusts the CA certificate can validate certificates signed by that CA.
 
-1. Crea un nuevo repositorio en GitHub (p�blico o privado).
-2. En la carpeta del proyecto, ejecuta:
+## Subject Alternative Names
 
-   ```bash
-   git init
-   git add .
-   git commit -m "Primera versi�n de OpcUaCertApp"
-   git branch -M main
-   git remote add origin <URL_DE_TU_REPOSITORIO>
-   git push -u origin main
-   ```
+A Subject Alternative Name, usually called **SAN**, identifies additional valid names for a certificate.
 
-3. A partir de ahora, puedes hacer cambios y subirlos con:
+For an OPC UA server running locally, you could enter:
 
-   ```bash
-   git add .
-   git commit -m "Descripci�n del cambio"
-   git push
-   ```
+```text
+DNS:opcua-server.local
+DNS:localhost
+IP:127.0.0.1
+```
 
-## Notas de seguridad
+Enter one SAN entry per line in the graphical application. The console application accepts comma-separated values.
 
-- Las claves privadas (`*_key.pem`) deben protegerse.
-- En un entorno real:
-  - No las compartas.
-  - Usa permisos de archivo adecuados.
-  - Considera usar contrase�as para cifrar las claves.
-- Este proyecto est� pensado para **aprendizaje y entornos de prueba**.
+For example:
 
-## Licencia
+```text
+DNS:opcua-server.local,DNS:localhost,IP:127.0.0.1
+```
 
-Este proyecto es de car�cter educativo. Puedes usarlo libremente para aprender y experimentar.
+## Default Configuration
+
+The application stores default values in `config.json`.
+
+Example:
+
+```json
+{
+  "country": "ES",
+  "state": "Madrid",
+  "locality": "Madrid",
+  "organization": "MyCompany",
+  "common_name_ca": "My OPC UA CA",
+  "common_name_server": "opcua-server.local",
+  "common_name_client": "opcua-client",
+  "validity_days_ca": 3650,
+  "validity_days_server": 365,
+  "validity_days_client": 365,
+  "key_size_ca": 2048,
+  "key_size_server": 2048,
+  "key_size_client": 2048
+}
+```
+
+You can edit this file manually, use the console application's configuration option, or use the graphical application's **Configuration** tab.
+
+## Project Structure
+
+```text
+CertApp/
+├── .gitignore
+├── README.md
+├── requirements.txt
+├── config.json
+├── app_console.py
+├── app_gui.py
+│
+├── src/
+│   ├── __init__.py
+│   ├── ca.py
+│   ├── server_cert.py
+│   ├── client_cert.py
+│   ├── utils.py
+│   └── config.py
+│
+├── tests/
+│   ├── __init__.py
+│   └── test_certs.py
+│
+└── certs/
+    ├── ca/
+    │   ├── ca_key.pem
+    │   └── ca_cert.pem
+    ├── server/
+    │   ├── server_key.pem
+    │   └── server_cert.pem
+    └── client/
+        ├── client_key.pem
+        └── client_cert.pem
+```
+
+## Certificate Files
+
+The application creates files in PEM format.
+
+| File | Description | Should be uploaded to GitHub? |
+|---|---|---|
+| `ca_key.pem` | Certificate Authority private key | No |
+| `ca_cert.pem` | Certificate Authority public certificate | Usually safe, but optional | No |
+| `server_key.pem` | Server private key | No |
+| `server_cert.pem` | Server public certificate | Usually safe, but optional | No |
+| `client_key.pem` | Client private key | No |
+| `client_cert.pem` | Client public certificate | Usually safe, but optional | No |
+
+## Security Notes
+
+Private keys are sensitive files. Anyone with access to a private key may be able to impersonate the corresponding CA, server, or client.
+
+For this reason:
+
+- Never upload `*_key.pem` files to GitHub.
+- Never send private keys by email, chat, or public storage.
+- Use passwords to protect private keys in production.
+- Restrict operating-system permissions on certificate folders.
+- Create a new CA and new certificates if a private key is exposed.
+- Use a trusted and properly managed PKI for production systems.
+
+The `.gitignore` file should ignore all private key files:
+
+```gitignore
+*_key.pem
+```
+
+## GitHub Workflow
+
+After making changes, use the following Git commands from the project folder:
+
+```bash
+git status
+git add .
+git commit -m "Describe the change"
+git push
+```
+
+Before committing, always run:
+
+```bash
+git status
+```
+
+Verify that files such as `ca_key.pem`, `server_key.pem`, and `client_key.pem` are not listed as staged changes.
+
+## License
+
+This project is educational and intended for experimentation and learning.

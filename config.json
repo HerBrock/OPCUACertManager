@@ -1,15 +1,12 @@
 {
-  "pais": "ES",
-  "estado": "Madrid",
-  "localidad": "Madrid",
-  "organizacion": "MiEmpresa",
-  "nombre_comun_ca": "MiCA OPC UA",
-  "nombre_comun_servidor": "servidor-opcua.local",
-  "nombre_comun_cliente": "cliente1",
-  "dias_valido_ca": 3650,
-  "dias_valido_servidor": 365,
-  "dias_valido_cliente": 365,
-  "tamano_clave_ca": 2048,
-  "tamano_clave_servidor": 2048,
-  "tamano_clave_cliente": 2048
+  "country": "ES",
+  "state": "Madrid",
+  "locality": "Madrid",
+  "organization": "MiEmpresa",
+  "common_name_ca": "MiCA OPC UA",
+  "common_name_server": "servidor-opcua.local",
+  "common_name_client": "client1",
+  "validity_days_ca": 3650,
+  "validity_days_server": 365,
+  "validity_days_client": 365
 }

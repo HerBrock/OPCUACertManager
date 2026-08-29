@@ -1,8 +1,7 @@
 """
-Módulo de utilidades comunes para la gestión de certificados.
+Common utilities for certificate management.
 
-Aquí van funciones que usan varios módulos (ca, server_cert, client_cert)
-para evitar código duplicado.
+Functions used by multiple modules (ca, server_cert, client_cert).
 """
 
 from cryptography import x509
@@ -12,57 +11,57 @@ from pathlib import Path
 from typing import Tuple
 
 
-def cargar_ca_desde_disk(
-    ruta_carpeta_ca: str | Path = "certs/ca",
-    nombre_clave: str = "ca_key.pem",
-    nombre_cert: str = "ca_cert.pem",
+def load_ca_from_disk(
+    ca_folder: str | Path = "certs/ca",
+    key_filename: str = "ca_key.pem",
+    cert_filename: str = "ca_cert.pem",
 ) -> Tuple[rsa.RSAPrivateKey, x509.Certificate]:
     """
-    Carga la clave privada y el certificado de la CA desde disco.
+    Load the CA private key and certificate from disk.
 
-    Devuelve (ca_private_key, ca_cert).
+    Returns (ca_private_key, ca_cert).
     """
-    carpeta = Path(ruta_carpeta_ca)
+    folder = Path(ca_folder)
 
-    ruta_clave = carpeta / nombre_clave
-    ruta_cert = carpeta / nombre_cert
+    key_path = folder / key_filename
+    cert_path = folder / cert_filename
 
-    # Cargar clave privada
-    with open(ruta_clave, "rb") as f:
+    # Load private key
+    with open(key_path, "rb") as f:
         ca_private_key = serialization.load_pem_private_key(
             f.read(),
             password=None,
         )
         if not isinstance(ca_private_key, rsa.RSAPrivateKey):
-            raise TypeError("La clave de la CA no es RSA")
+            raise TypeError("CA key is not an RSA key")
 
-    # Cargar certificado
-    with open(ruta_cert, "rb") as f:
+    # Load certificate
+    with open(cert_path, "rb") as f:
         ca_cert = x509.load_pem_x509_certificate(f.read())
 
     return ca_private_key, ca_cert
 
 
-def guardar_clave_y_certificado_en_pem(
+def save_key_and_cert_to_pem(
     private_key: rsa.RSAPrivateKey,
     cert: x509.Certificate,
-    ruta_carpeta: str | Path,
-    nombre_clave: str,
-    nombre_cert: str,
+    folder_path: str | Path,
+    key_filename: str,
+    cert_filename: str,
 ) -> None:
     """
-    Guarda una clave privada y un certificado en archivos PEM.
+    Save a private key and a certificate to PEM files.
 
-    Esta función es genérica y sirve para CA, servidor o cliente.
+    This is generic and works for CA, server, or client.
     """
-    carpeta = Path(ruta_carpeta)
-    carpeta.mkdir(parents=True, exist_ok=True)
+    folder = Path(folder_path)
+    folder.mkdir(parents=True, exist_ok=True)
 
-    ruta_clave = carpeta / nombre_clave
-    ruta_cert = carpeta / nombre_cert
+    key_path = folder / key_filename
+    cert_path = folder / cert_filename
 
-    # Guardar clave privada
-    with open(ruta_clave, "wb") as f:
+    # Save private key
+    with open(key_path, "wb") as f:
         f.write(
             private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -71,17 +70,15 @@ def guardar_clave_y_certificado_en_pem(
             )
         )
 
-    # Guardar certificado
-    with open(ruta_cert, "wb") as f:
+    # Save certificate
+    with open(cert_path, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
 
 
-def asegurar_carpeta(ruta: str | Path) -> Path:
+def ensure_folder(path: str | Path) -> Path:
     """
-    Crea una carpeta si no existe y devuelve su Path.
-
-    Útil para asegurar que las carpetas de certificados existen.
+    Create a folder if it does not exist and return its Path.
     """
-    p = Path(ruta)
+    p = Path(path)
     p.mkdir(parents=True, exist_ok=True)
     return p

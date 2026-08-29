@@ -1,5 +1,5 @@
 """
-Módulo para cargar y guardar la configuración de la aplicación (config.json).
+Module to load and save application configuration (config.json).
 """
 
 import json
@@ -8,59 +8,58 @@ from typing import Any
 
 
 DEFAULT_CONFIG = {
-    "pais": "ES",
-    "estado": "Madrid",
-    "localidad": "Madrid",
-    "organizacion": "MiEmpresa",
-    "nombre_comun_ca": "MiCA OPC UA",
-    "nombre_comun_servidor": "servidor-opcua.local",
-    "nombre_comun_cliente": "cliente1",
-    "dias_valido_ca": 3650,
-    "dias_valido_servidor": 365,
-    "dias_valido_cliente": 365,
-    "tamano_clave_ca": 2048,
-    "tamano_clave_servidor": 2048,
-    "tamano_clave_cliente": 2048,
+    "country": "ES",
+    "state": "Madrid",
+    "locality": "Madrid",
+    "organization": "MiEmpresa",
+    "common_name_ca": "MiCA OPC UA",
+    "common_name_server": "servidor-opcua.local",
+    "common_name_client": "client1",
+    "validity_days_ca": 3650,
+    "validity_days_server": 365,
+    "validity_days_client": 365,
+    "key_size_ca": 2048,
+    "key_size_server": 2048,
+    "key_size_client": 2048,
 }
 
 
-def obtener_ruta_config() -> Path:
+def get_config_path() -> Path:
     """
-    Devuelve la ruta esperada para config.json (en la raíz del proyecto).
+    Return the expected path for config.json (in the project root).
     """
-    # Asumimos que config.json está en la raíz, al mismo nivel que la carpeta src
-    # Desde src/config.py, la raíz es el padre del padre
+    # Assuming config.json is in the root, at the same level as the src folder
     return Path(__file__).resolve().parent.parent / "config.json"
 
 
-def cargar_config() -> dict[str, Any]:
+def load_config() -> dict[str, Any]:
     """
-    Carga la configuración desde config.json.
-    Si no existe o hay error, devuelve una configuración por defecto.
+    Load configuration from config.json.
+    If it does not exist or there is an error, return default configuration.
     """
-    ruta = obtener_ruta_config()
-    if not ruta.exists():
+    path = get_config_path()
+    if not path.exists():
         return DEFAULT_CONFIG.copy()
 
     try:
-        with open(ruta, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         if not isinstance(data, dict):
             return DEFAULT_CONFIG.copy()
 
-        # Fusionar con defaults por si falta alguna clave
+        # Merge with defaults in case some keys are missing
         config = DEFAULT_CONFIG.copy()
         config.update(data)
         return config
     except Exception:
-        # Si hay cualquier error, usamos defaults
+        # If any error occurs, use defaults
         return DEFAULT_CONFIG.copy()
 
 
-def guardar_config(config: dict[str, Any]) -> None:
+def save_config(config: dict[str, Any]) -> None:
     """
-    Guarda la configuración en config.json.
+    Save configuration to config.json.
     """
-    ruta = obtener_ruta_config()
-    with open(ruta, "w", encoding="utf-8") as f:
+    path = get_config_path()
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)

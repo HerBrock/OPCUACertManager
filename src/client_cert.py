@@ -1,77 +1,104 @@
 """
-Módulo para crear certificados de cliente OPC UA.
+Module to create OPC UA client certificates.
 
-Estos certificados serán firmados por la CA creada en ca.py.
+These certificates are signed by the CA created in ca.py.
 """
 
 import ipaddress
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import List, Optional, Tuple
 
-from .utils import cargar_ca_desde_disk, guardar_clave_y_certificado_en_pem
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
+
+from .utils import (
+    load_ca_from_disk,
+    save_key_and_cert_to_pem,
+)
 
 
-def generar_clave_cliente(tamano_clave: int = 2048) -> rsa.RSAPrivateKey:
+def generate_client_key(
+    key_size: int = 2048,
+) -> rsa.RSAPrivateKey:
     """
-    Genera una clave privada RSA para el cliente OPC UA.
+    Generate an RSA private key for the OPC UA client.
     """
     return rsa.generate_private_key(
         public_exponent=65537,
-        key_size=tamano_clave,
+        key_size=key_size,
     )
 
 
-def construir_certificado_cliente(
-    private_key_cliente: rsa.RSAPrivateKey,
+def build_client_certificate(
+    client_private_key: rsa.RSAPrivateKey,
     ca_private_key: rsa.RSAPrivateKey,
     ca_cert: x509.Certificate,
-    nombre_pais: str = "ES",
-    nombre_estado: str = "Madrid",
-    nombre_localidad: str = "Madrid",
-    nombre_organizacion: str = "MiEmpresa",
-    nombre_comun: str = "cliente-opcua",
-    nombres_alternos: Optional[List[str]] = None,
-    dias_valido: int = 365,
+    country_name: str = "ES",
+    state_name: str = "Madrid",
+    locality_name: str = "Madrid",
+    organization_name: str = "MyCompany",
+    common_name: str = "opcua-client",
+    san_list: list[str] | None = None,
+    validity_days: int = 365,
 ) -> x509.Certificate:
     """
-    Construye un certificado X.509 para un cliente OPC UA, firmado por la CA.
+    Build an X.509 certificate for an OPC UA client.
+
+    The certificate is signed by the CA private key.
     """
-    subject = x509.Name([
-        x509.NameAttribute(NameOID.COUNTRY_NAME, nombre_pais),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, nombre_estado),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, nombre_localidad),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, nombre_organizacion),
-        x509.NameAttribute(NameOID.COMMON_NAME, nombre_comun),
-    ])
+
+    subject = x509.Name(
+        [
+            x509.NameAttribute(
+                NameOID.COUNTRY_NAME,
+                country_name,
+            ),
+            x509.NameAttribute(
+                NameOID.STATE_OR_PROVINCE_NAME,
+                state_name,
+            ),
+            x509.NameAttribute(
+                NameOID.LOCALITY_NAME,
+                locality_name,
+            ),
+            x509.NameAttribute(
+                NameOID.ORGANIZATION_NAME,
+                organization_name,
+            ),
+            x509.NameAttribute(
+                NameOID.COMMON_NAME,
+                common_name,
+            ),
+        ]
+    )
 
     issuer = ca_cert.subject
-
-    ahora = datetime.now(timezone.utc)
-    not_valid_before = ahora
-    not_valid_after = ahora + timedelta(days=dias_valido)
+    now = datetime.now(timezone.utc)
 
     builder = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer)
-        .public_key(private_key_cliente.public_key())
+        .public_key(client_private_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(not_valid_before)
-        .not_valid_after(not_valid_after)
+        .not_valid_before(now)
+        .not_valid_after(
+            now + timedelta(days=validity_days)
+        )
     )
 
-    # Basic Constraints: NO es una CA
+    # The client certificate is not a CA.
     builder = builder.add_extension(
-        x509.BasicConstraints(ca=False, path_length=None),
+        x509.BasicConstraints(
+            ca=False,
+            path_length=None,
+        ),
         critical=True,
     )
 
-    # Key Usage
+    # Key usage for signing and TLS key exchange.
     builder = builder.add_extension(
         x509.KeyUsage(
             digital_signature=True,
@@ -87,82 +114,95 @@ def construir_certificado_cliente(
         critical=True,
     )
 
-    # Extended Key Usage: CLIENT_AUTH
+    # This certificate authenticates a client.
     builder = builder.add_extension(
-        x509.ExtendedKeyUsage([
-            x509.oid.ExtendedKeyUsageOID.CLIENT_AUTH,
-        ]),
+        x509.ExtendedKeyUsage(
+            [
+                ExtendedKeyUsageOID.CLIENT_AUTH,
+            ]
+        ),
         critical=False,
     )
 
-    # Subject Alternative Name (SAN)
-    if nombres_alternos:
-        san_list = []
-        for nombre in nombres_alternos:
-            nombre = nombre.strip()
-            if nombre.upper().startswith("DNS:"):
-                dns_name = nombre.split(":", 1)[1].strip()
-                san_list.append(x509.DNSName(dns_name))
-            elif nombre.upper().startswith("IP:"):
-                ip_str = nombre.split(":", 1)[1].strip()
-                ip_obj = ipaddress.ip_address(ip_str)
-                san_list.append(x509.IPAddress(ip_obj))
+    # Optional Subject Alternative Names.
+    if san_list:
+        san_entries = []
+
+        for name in san_list:
+            name = name.strip()
+
+            if name.upper().startswith("DNS:"):
+                dns_name = name.split(":", 1)[1].strip()
+                san_entries.append(x509.DNSName(dns_name))
+
+            elif name.upper().startswith("IP:"):
+                ip_text = name.split(":", 1)[1].strip()
+                ip_address = ipaddress.ip_address(ip_text)
+                san_entries.append(x509.IPAddress(ip_address))
+
             else:
-                san_list.append(x509.DNSName(nombre))
+                san_entries.append(x509.DNSName(name))
 
-        builder = builder.add_extension(
-            x509.SubjectAlternativeName(san_list),
-            critical=False,
-        )
+        if san_entries:
+            builder = builder.add_extension(
+                x509.SubjectAlternativeName(san_entries),
+                critical=False,
+            )
 
-    cert = builder.sign(ca_private_key, hashes.SHA256())
-    return cert
+    return builder.sign(
+        ca_private_key,
+        hashes.SHA256(),
+    )
 
 
-def crear_certificado_cliente(
-    ruta_carpeta_cliente: str | Path = "certs/client",
-    ruta_carpeta_ca: str | Path = "certs/ca",
-    tamano_clave: int = 2048,
-    nombre_pais: str = "ES",
-    nombre_estado: str = "Madrid",
-    nombre_localidad: str = "Madrid",
-    nombre_organizacion: str = "MiEmpresa",
-    nombre_comun: str = "cliente-opcua",
-    nombres_alternos: Optional[List[str]] = None,
-    dias_valido: int = 365,
-) -> Tuple[rsa.RSAPrivateKey, x509.Certificate]:
+def create_client_certificate(
+    client_folder: str | Path = "certs/client",
+    ca_folder: str | Path = "certs/ca",
+    key_size: int = 2048,
+    country_name: str = "ES",
+    state_name: str = "Madrid",
+    locality_name: str = "Madrid",
+    organization_name: str = "MyCompany",
+    common_name: str = "opcua-client",
+    san_list: list[str] | None = None,
+    validity_days: int = 365,
+) -> tuple[rsa.RSAPrivateKey, x509.Certificate]:
     """
-    Función de alto nivel que:
-    1. Carga la CA desde disco.
-    2. Genera la clave del cliente.
-    3. Construye el certificado del cliente firmado por la CA.
-    4. Guarda clave y certificado en disco.
+    Create and save a complete OPC UA client certificate.
 
-    Devuelve la clave y el certificado del cliente.
+    The function:
+    1. Loads the CA from disk.
+    2. Generates the client private key.
+    3. Builds the client certificate.
+    4. Saves the key and certificate to disk.
+
+    Returns:
+        A tuple containing the client private key and certificate.
     """
-    ca_private_key, ca_cert = cargar_ca_desde_disk(ruta_carpeta_ca)
 
-    private_key_cliente = generar_clave_cliente(tamano_clave)
+    ca_private_key, ca_cert = load_ca_from_disk(ca_folder)
 
-    cert = construir_certificado_cliente(
-        private_key_cliente=private_key_cliente,
+    client_private_key = generate_client_key(key_size)
+
+    certificate = build_client_certificate(
+        client_private_key=client_private_key,
         ca_private_key=ca_private_key,
         ca_cert=ca_cert,
-        nombre_pais=nombre_pais,
-        nombre_estado=nombre_estado,
-        nombre_localidad=nombre_localidad,
-        nombre_organizacion=nombre_organizacion,
-        nombre_comun=nombre_comun,
-        nombres_alternos=nombres_alternos,
-        dias_valido=dias_valido,
+        country_name=country_name,
+        state_name=state_name,
+        locality_name=locality_name,
+        organization_name=organization_name,
+        common_name=common_name,
+        san_list=san_list,
+        validity_days=validity_days,
     )
 
-    guardar_clave_y_certificado_en_pem(
-        private_key_cliente,
-        cert,
-        ruta_carpeta=ruta_carpeta_cliente,
-        nombre_clave="client_key.pem",
-        nombre_cert="client_cert.pem",
+    save_key_and_cert_to_pem(
+        private_key=client_private_key,
+        cert=certificate,
+        folder_path=client_folder,
+        key_filename="client_key.pem",
+        cert_filename="client_cert.pem",
     )
 
-    return private_key_cliente, cert
+    return client_private_key, certificate

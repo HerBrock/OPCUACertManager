@@ -1,10 +1,9 @@
 """
-Módulo para crear certificados de servidor OPC UA.
+Module to create OPC UA server certificates.
 
-Estos certificados serán firmados por la CA creada en ca.py.
+These certificates will be signed by the CA created in ca.py.
 """
 
-import ipaddress
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
@@ -12,60 +11,61 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple
+import ipaddress
 
-from .utils import cargar_ca_desde_disk, guardar_clave_y_certificado_en_pem
+from .utils import load_ca_from_disk, save_key_and_cert_to_pem
 
 
-def generar_clave_servidor(tamano_clave: int = 2048) -> rsa.RSAPrivateKey:
+def generate_server_key(key_size: int = 2048) -> rsa.RSAPrivateKey:
     """
-    Genera una clave privada RSA para el servidor OPC UA.
+    Generate an RSA private key for the OPC UA server.
     """
     return rsa.generate_private_key(
         public_exponent=65537,
-        key_size=tamano_clave,
+        key_size=key_size,
     )
 
 
-def construir_certificado_servidor(
-    private_key_servidor: rsa.RSAPrivateKey,
+def build_server_certificate(
+    server_private_key: rsa.RSAPrivateKey,
     ca_private_key: rsa.RSAPrivateKey,
     ca_cert: x509.Certificate,
-    nombre_pais: str = "ES",
-    nombre_estado: str = "Madrid",
-    nombre_localidad: str = "Madrid",
-    nombre_organizacion: str = "MiEmpresa",
-    nombre_comun: str = "servidor-opcua.local",
-    nombres_alternos: Optional[List[str]] = None,
-    dias_valido: int = 365,
+    country_name: str = "ES",
+    state_name: str = "Madrid",
+    locality_name: str = "Madrid",
+    organization_name: str = "MyCompany",
+    common_name: str = "opcua-server.local",
+    san_list: list[str] | None = None,
+    validity_days: int = 365,
 ) -> x509.Certificate:
     """
-    Construye un certificado X.509 para un servidor OPC UA, firmado por la CA.
+    Build an X.509 certificate for an OPC UA server, signed by the CA.
     """
     subject = x509.Name([
-        x509.NameAttribute(NameOID.COUNTRY_NAME, nombre_pais),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, nombre_estado),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, nombre_localidad),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, nombre_organizacion),
-        x509.NameAttribute(NameOID.COMMON_NAME, nombre_comun),
+        x509.NameAttribute(NameOID.COUNTRY_NAME, country_name),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state_name),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, locality_name),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization_name),
+        x509.NameAttribute(NameOID.COMMON_NAME, common_name),
     ])
 
     issuer = ca_cert.subject
 
-    ahora = datetime.now(timezone.utc)
-    not_valid_before = ahora
-    not_valid_after = ahora + timedelta(days=dias_valido)
+    now = datetime.now(timezone.utc)
+    not_valid_before = now
+    not_valid_after = now + timedelta(days=validity_days)
 
     builder = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer)
-        .public_key(private_key_servidor.public_key())
+        .public_key(server_private_key.public_key())
         .serial_number(x509.random_serial_number())
         .not_valid_before(not_valid_before)
         .not_valid_after(not_valid_after)
     )
 
-    # Basic Constraints: NO es una CA
+    # Basic Constraints: NOT a CA
     builder = builder.add_extension(
         x509.BasicConstraints(ca=False, path_length=None),
         critical=True,
@@ -96,20 +96,19 @@ def construir_certificado_servidor(
     )
 
     # Subject Alternative Name (SAN)
-    if nombres_alternos:
-
+    if san_list:
         san_list = []
-        for nombre in nombres_alternos:
-            nombre = nombre.strip()
-            if nombre.upper().startswith("DNS:"):
-                dns_name = nombre.split(":", 1)[1].strip()
+        for name in san_list:
+            name = name.strip()
+            if name.upper().startswith("DNS:"):
+                dns_name = name.split(":", 1)[1].strip()
                 san_list.append(x509.DNSName(dns_name))
-            elif nombre.upper().startswith("IP:"):
-                ip_str = nombre.split(":", 1)[1].strip()
+            elif name.upper().startswith("IP:"):
+                ip_str = name.split(":", 1)[1].strip()
                 ip_obj = ipaddress.ip_address(ip_str)
                 san_list.append(x509.IPAddress(ip_obj))
             else:
-                san_list.append(x509.DNSName(nombre))
+                san_list.append(x509.DNSName(name))
 
         builder = builder.add_extension(
             x509.SubjectAlternativeName(san_list),
@@ -120,50 +119,50 @@ def construir_certificado_servidor(
     return cert
 
 
-def crear_certificado_servidor(
-    ruta_carpeta_server: str | Path = "certs/server",
-    ruta_carpeta_ca: str | Path = "certs/ca",
-    tamano_clave: int = 2048,
-    nombre_pais: str = "ES",
-    nombre_estado: str = "Madrid",
-    nombre_localidad: str = "Madrid",
-    nombre_organizacion: str = "MiEmpresa",
-    nombre_comun: str = "servidor-opcua.local",
-    nombres_alternos: Optional[List[str]] = None,
-    dias_valido: int = 365,
-) -> Tuple[rsa.RSAPrivateKey, x509.Certificate]:
+def create_server_certificate(
+    server_folder: str | Path = "certs/server",
+    ca_folder: str | Path = "certs/ca",
+    key_size: int = 2048,
+    country_name: str = "ES",
+    state_name: str = "Madrid",
+    locality_name: str = "Madrid",
+    organization_name: str = "MyCompany",
+    common_name: str = "opcua-server.local",
+    san_list: list[str] | None = None,
+    validity_days: int = 365,
+) -> tuple[rsa.RSAPrivateKey, x509.Certificate]:
     """
-    Función de alto nivel que:
-    1. Carga la CA desde disco.
-    2. Genera la clave del servidor.
-    3. Construye el certificado del servidor firmado por la CA.
-    4. Guarda clave y certificado en disco.
+    High-level function that:
+    1. Loads the CA from disk.
+    2. Generates the server key.
+    3. Builds the server certificate signed by the CA.
+    4. Saves key and certificate to disk.
 
-    Devuelve la clave y el certificado del servidor.
+    Returns the server key and certificate.
     """
-    ca_private_key, ca_cert = cargar_ca_desde_disk(ruta_carpeta_ca)
+    ca_private_key, ca_cert = load_ca_from_disk(ca_folder)
 
-    private_key_servidor = generar_clave_servidor(tamano_clave)
+    server_private_key = generate_server_key(key_size)
 
-    cert = construir_certificado_servidor(
-        private_key_servidor=private_key_servidor,
+    cert = build_server_certificate(
+        server_private_key=server_private_key,
         ca_private_key=ca_private_key,
         ca_cert=ca_cert,
-        nombre_pais=nombre_pais,
-        nombre_estado=nombre_estado,
-        nombre_localidad=nombre_localidad,
-        nombre_organizacion=nombre_organizacion,
-        nombre_comun=nombre_comun,
-        nombres_alternos=nombres_alternos,
-        dias_valido=dias_valido,
+        country_name=country_name,
+        state_name=state_name,
+        locality_name=locality_name,
+        organization_name=organization_name,
+        common_name=common_name,
+        san_list=san_list,
+        validity_days=validity_days,
     )
 
-    guardar_clave_y_certificado_en_pem(
-        private_key_servidor,
+    save_key_and_cert_to_pem(
+        server_private_key,
         cert,
-        ruta_carpeta=ruta_carpeta_server,
-        nombre_clave="server_key.pem",
-        nombre_cert="server_cert.pem",
+        folder_path=server_folder,
+        key_filename="server_key.pem",
+        cert_filename="server_cert.pem",
     )
 
-    return private_key_servidor, cert
+    return server_private_key, cert

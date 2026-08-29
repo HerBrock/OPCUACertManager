@@ -1,314 +1,310 @@
 """
-Mini‑app de consola para crear certificados OPC UA.
+Console mini-app to create OPC UA certificates.
 
-Menú:
-1) Crear CA
-2) Crear certificado de servidor
-3) Crear certificado de cliente
-4) Salir
-5) Editar configuración por defecto
+Menu:
+1) Create CA
+2) Create server certificate
+3) Create client certificate
+4) Edit default configuration
+5) Exit
 """
 
-import json
-from pathlib import Path
-
-from src.ca import crear_ca
-from src.server_cert import crear_certificado_servidor
-from src.client_cert import crear_certificado_cliente
-from src.config import cargar_config, guardar_config, DEFAULT_CONFIG
+from src.ca import create_ca
+from src.server_cert import create_server_certificate
+from src.client_cert import create_client_certificate
+from src.config import load_config, save_config, DEFAULT_CONFIG
 
 
-def pedir_texto(mensaje: str, valor_por_defecto: str | None = None, obligatorio: bool = False) -> str:
+def ask_text(prompt: str, default: str | None = None, required: bool = False) -> str:
     """
-    Pide un texto al usuario.
-    
-    - Si obligatorio=True, no acepta vacío.
-    - Si hay valor_por_defecto y el usuario deja vacío, lo usa.
+    Ask the user for a text input.
+
+    - If required=True, does not accept empty.
+    - If there is a default and user leaves it empty, use the default.
     """
     while True:
-        if valor_por_defecto:
-            entrada = input(f"{mensaje} [{valor_por_defecto}]: ").strip()
+        if default:
+            value = input(f"{prompt} [{default}]: ").strip()
         else:
-            entrada = input(f"{mensaje}: ").strip()
+            value = input(f"{prompt}: ").strip()
 
-        if not entrada:
-            if obligatorio and not valor_por_defecto:
-                print("Este campo es obligatorio. Por favor, introdúcelo.")
+        if not value:
+            if required and not default:
+                print("This field is required. Please enter a value.")
                 continue
-            if obligatorio and valor_por_defecto:
-                # Si es obligatorio pero hay default, usamos el default si deja vacío
-                return valor_por_defecto
-            if not obligatorio:
-                return entrada if entrada else (valor_por_defecto or "")
-        return entrada if entrada else (valor_por_defecto or "")
+            if required and default:
+                # If required but there is a default, use default if left empty
+                return default
+            if not required:
+                return value if value else (default or "")
+        return value if value else (default or "")
 
 
-def pedir_entero(mensaje: str, valor_por_defecto: int, minimo: int | None = None, maximo: int | None = None) -> int:
+def ask_int(prompt: str, default: int, minimum: int | None = None, maximum: int | None = None) -> int:
     """
-    Pide un número entero al usuario con validación de rango opcional.
+    Ask the user for an integer input with optional range validation.
     """
     while True:
-        entrada = input(f"{mensaje} [{valor_por_defecto}]: ").strip()
-        if not entrada:
-            return valor_por_defecto
+        value = input(f"{prompt} [{default}]: ").strip()
+        if not value:
+            return default
         try:
-            valor = int(entrada)
+            num = int(value)
         except ValueError:
-            print("Debe ser un número entero.")
+            print("Must be an integer.")
             continue
 
-        if minimo is not None and valor < minimo:
-            print(f"El valor mínimo es {minimo}.")
+        if minimum is not None and num < minimum:
+            print(f"Minimum value is {minimum}.")
             continue
-        if maximo is not None and valor > maximo:
-            print(f"El valor máximo es {maximo}.")
+        if maximum is not None and num > maximum:
+            print(f"Maximum value is {maximum}.")
             continue
 
-        return valor
+        return num
 
 
-def pedir_lista_texto(mensaje: str) -> list[str] | None:
+def ask_text_list(prompt: str) -> list[str] | None:
     """
-    Pide una lista de textos separados por comas.
-    Devuelve None si el usuario deja la línea vacía.
+    Ask the user for a comma-separated list of texts.
+    Returns None if the user leaves the line empty.
     """
-    entrada = input(f"{mensaje} (separados por coma, o dejar vacío): ").strip()
-    if not entrada:
+    value = input(f"{prompt} (comma-separated, or leave empty): ").strip()
+    if not value:
         return None
-    return [item.strip() for item in entrada.split(",") if item.strip()]
+    return [item.strip() for item in value.split(",") if item.strip()]
 
 
-def pedir_tamano_clave(tipo: str) -> int:
+def ask_key_size(entity: str) -> int:
     """
-    Pide el tamaño de clave para un tipo dado (CA, servidor, cliente).
-    Opciones: 2048 o 4096.
+    Ask the user for the key size for a given entity (CA, server, client).
+    Options: 2048 or 4096.
     """
-    print(f"Tamaño de clave para {tipo} (2048 o 4096):")
+    print(f"Key size for {entity} (2048 or 4096):")
     while True:
-        entrada = input("Introduce 2048 o 4096 [2048]: ").strip()
-        if not entrada:
+        value = input("Enter 2048 or 4096 [2048]: ").strip()
+        if not value:
             return 2048
-        if entrada not in ("2048", "4096"):
-            print("Opción no válida. Introduce 2048 o 4096.")
+        if value not in ("2048", "4096"):
+            print("Invalid option. Enter 2048 or 4096.")
             continue
-        return int(entrada)
+        return int(value)
 
 
-def opcion_crear_ca(config: dict) -> None:
+def create_ca_option(config: dict) -> None:
     """
-    Pide los parámetros para crear una CA y la crea.
+    Ask parameters to create a CA and create it.
     """
-    print("\n=== Crear CA ===")
+    print("\n=== Create CA ===")
 
-    pais = pedir_texto("País", config["pais"])
-    estado = pedir_texto("Estado / Provincia", config["estado"])
-    localidad = pedir_texto("Localidad", config["localidad"])
-    organizacion = pedir_texto("Organización", config["organizacion"])
-    nombre_comun = pedir_texto(
-        "Nombre común (CN)",
-        config["nombre_comun_ca"],
-        obligatorio=True,
+    country = ask_text("Country", config["country"])
+    state = ask_text("State / Province", config["state"])
+    locality = ask_text("Locality", config["locality"])
+    org = ask_text("Organization", config["organization"])
+    common_name = ask_text(
+        "Common Name (CN)",
+        config["common_name_ca"],
+        required=True,
     )
 
-    dias_valido = pedir_entero(
-        "Días de validez",
-        config["dias_valido_ca"],
-        minimo=1,
+    validity_days = ask_int(
+        "Validity (days)",
+        config["validity_days_ca"],
+        minimum=1,
     )
 
-    tamano_clave = pedir_tamano_clave("CA")
+    key_size = ask_key_size("CA")
 
-    print("\nCreando CA...")
+    print("\nCreating CA...")
 
     try:
-        private_key, cert = crear_ca(
-            ruta_carpeta_ca="certs/ca",
-            tamano_clave=tamano_clave,
-            nombre_pais=pais,
-            nombre_estado=estado,
-            nombre_localidad=localidad,
-            nombre_organizacion=organizacion,
-            nombre_comun=nombre_comun,
-            dias_valido=dias_valido,
-        )
-        print("CA creada correctamente.")
-        print("Archivos generados en: certs/ca/")
-        print("  - ca_key.pem  (clave privada)")
-        print("  - ca_cert.pem (certificado)")
+        create_ca(
+            ca_folder="certs/ca",
+            key_size=key_size,
+            country_name=country,
+            state_name=state,
+            locality_name=locality,
+            organization_name=org,
+            common_name=cn,
+            validity_days=validity,
+        ) 
+        print("CA created successfully.")
+        print("Files generated in: certs/ca/")
+        print("  - ca_key.pem  (private key)")
+        print("  - ca_cert.pem (certificate)")
     except Exception as e:
-        print(f"Error al crear la CA: {e}")
+        print(f"Error creating CA: {e}")
 
 
-def opcion_crear_servidor(config: dict) -> None:
+def create_server_option(config: dict) -> None:
     """
-    Pide los parámetros para crear un certificado de servidor y lo crea.
+    Ask parameters to create a server certificate and create it.
     """
-    print("\n=== Crear certificado de servidor ===")
+    print("\n=== Create server certificate ===")
 
-    pais = pedir_texto("País", config["pais"])
-    estado = pedir_texto("Estado / Provincia", config["estado"])
-    localidad = pedir_texto("Localidad", config["localidad"])
-    organizacion = pedir_texto("Organización", config["organizacion"])
-    nombre_comun = pedir_texto(
-        "Nombre común (CN) / hostname",
-        config["nombre_comun_servidor"],
-        obligatorio=True,
+    country = ask_text("Country", config["country"])
+    state = ask_text("State / Province", config["state"])
+    locality = ask_text("Locality", config["locality"])
+    org = ask_text("Organization", config["organization"])
+    common_name = ask_text(
+        "Common Name (CN) / hostname",
+        config["common_name_server"],
+        required=True,
     )
 
     print(
-        "Nombres alternos (SAN). Ejemplo:\n"
+        "Subject Alternative Names (SAN). Example:\n"
         "  DNS:servidor-opcua.local,DNS:localhost,IP:127.0.0.1\n"
-        "Puedes dejarlo vacío si no quieres SAN."
+        "You can leave it empty if you don't want SAN."
     )
-    san_entrada = pedir_lista_texto("SAN")
+    san_input = ask_text_list("SAN")
 
-    dias_valido = pedir_entero(
-        "Días de validez",
-        config["dias_valido_servidor"],
-        minimo=1,
+    validity_days = ask_int(
+        "Validity (days)",
+        config["validity_days_server"],
+        minimum=1,
     )
 
-    tamano_clave = pedir_tamano_clave("servidor")
+    key_size = ask_key_size("server")
 
-    print("\nCreando certificado de servidor...")
+    print("\nCreating server certificate...")
 
     try:
-        private_key, cert = crear_certificado_servidor(
-            ruta_carpeta_server="certs/server",
-            ruta_carpeta_ca="certs/ca",
-            tamano_clave=tamano_clave,
-            nombre_pais=pais,
-            nombre_estado=estado,
-            nombre_localidad=localidad,
-            nombre_organizacion=organizacion,
-            nombre_comun=nombre_comun,
-            nombres_alternos=san_entrada,
-            dias_valido=dias_valido,
+        create_server_certificate(
+            server_folder="certs/server",
+            ca_folder="certs/ca",
+            key_size=key_size,
+            country_name=country,
+            state_name=state,
+            locality_name=locality,
+            organization_name=org,
+            common_name=common_name,
+            san_list=san_input,
+            validity_days=validity_days,
         )
-        print("Certificado de servidor creado correctamente.")
-        print("Archivos generados en: certs/server/")
-        print("  - server_key.pem  (clave privada)")
-        print("  - server_cert.pem (certificado)")
+        print("Server certificate created successfully.")
+        print("Files generated in: certs/server/")
+        print("  - server_key.pem  (private key)")
+        print("  - server_cert.pem (certificate)")
     except Exception as e:
-        print(f"Error al crear el certificado de servidor: {e}")
+        print(f"Error creating server certificate: {e}")
 
 
-def opcion_crear_cliente(config: dict) -> None:
+def create_client_option(config: dict) -> None:
     """
-    Pide los parámetros para crear un certificado de cliente y lo crea.
+    Ask parameters to create a client certificate and create it.
     """
-    print("\n=== Crear certificado de cliente ===")
+    print("\n=== Create client certificate ===")
 
-    pais = pedir_texto("País", config["pais"])
-    estado = pedir_texto("Estado / Provincia", config["estado"])
-    localidad = pedir_texto("Localidad", config["localidad"])
-    organizacion = pedir_texto("Organización", config["organizacion"])
-    nombre_comun = pedir_texto(
-        "Nombre común (CN) / identificador del cliente",
-        config["nombre_comun_cliente"],
-        obligatorio=True,
+    country = ask_text("Country", config["country"])
+    state = ask_text("State / Province", config["state"])
+    locality = ask_text("Locality", config["locality"])
+    org = ask_text("Organization", config["organization"])
+    common_name = ask_text(
+        "Common Name (CN) / client identifier",
+        config["common_name_client"],
+        required=True,
     )
 
     print(
-        "Nombres alternos (SAN). Ejemplo:\n"
-        "  DNS:cliente1.local,IP:192.168.1.20\n"
-        "Puedes dejarlo vacío si no quieres SAN."
+        "Subject Alternative Names (SAN). Example:\n"
+        "  DNS:client1.local,IP:192.168.1.20\n"
+        "You can leave it empty if you don't want SAN."
     )
-    san_entrada = pedir_lista_texto("SAN")
+    san_input = ask_text_list("SAN")
 
-    dias_valido = pedir_entero(
-        "Días de validez",
-        config["dias_valido_cliente"],
-        minimo=1,
+    validity_days = ask_int(
+        "Validity (days)",
+        config["validity_days_client"],
+        minimum=1,
     )
 
-    tamano_clave = pedir_tamano_clave("cliente")
+    key_size = ask_key_size("client")
 
-    print("\nCreando certificado de cliente...")
+    print("\nCreating client certificate...")
 
     try:
-        private_key, cert = crear_certificado_cliente(
-            ruta_carpeta_cliente="certs/client",
-            ruta_carpeta_ca="certs/ca",
-            tamano_clave=tamano_clave,
-            nombre_pais=pais,
-            nombre_estado=estado,
-            nombre_localidad=localidad,
-            nombre_organizacion=organizacion,
-            nombre_comun=nombre_comun,
-            nombres_alternos=san_entrada,
-            dias_valido=dias_valido,
+        create_client_certificate(
+            client_folder="certs/client",
+            ca_folder="certs/ca",
+            key_size=key_size,
+            country_name=country,
+            state_name=state,
+            locality_name=locality,
+            organization_name=org,
+            common_name=common_name,
+            san_list=san_input,
+            validity_days=validity_days,
         )
-        print("Certificado de cliente creado correctamente.")
-        print("Archivos generados en: certs/client/")
-        print("  - client_key.pem  (clave privada)")
-        print("  - client_cert.pem (certificado)")
+        print("Client certificate created successfully.")
+        print("Files generated in: certs/client/")
+        print("  - client_key.pem  (private key)")
+        print("  - client_cert.pem (certificate)")
     except Exception as e:
-        print(f"Error al crear el certificado de cliente: {e}")
+        print(f"Error creating client certificate: {e}")
 
 
-def opcion_editar_config() -> None:
+def edit_config_option() -> None:
     """
-    Permite editar la configuración por defecto (config.json).
+    Allow editing the default configuration (config.json).
     """
-    print("\n=== Editar configuración por defecto ===")
+    print("\n=== Edit default configuration ===")
 
-    config = cargar_config()
+    config = load_config()
 
-    print("Introduce los nuevos valores por defecto (deja vacío para mantener el actual).")
+    print("Enter new default values (leave empty to keep current).")
 
-    config["pais"] = pedir_texto("País", config["pais"])
-    config["estado"] = pedir_texto("Estado / Provincia", config["estado"])
-    config["localidad"] = pedir_texto("Localidad", config["localidad"])
-    config["organizacion"] = pedir_texto("Organización", config["organizacion"])
-    config["nombre_comun_ca"] = pedir_texto("Nombre común (CN) para CA", config["nombre_comun_ca"])
-    config["nombre_comun_servidor"] = pedir_texto("Nombre común (CN) para servidor", config["nombre_comun_servidor"])
-    config["nombre_comun_cliente"] = pedir_texto("Nombre común (CN) para cliente", config["nombre_comun_cliente"])
+    config["country"] = ask_text("Country", config["country"])
+    config["state"] = ask_text("State / Province", config["state"])
+    config["locality"] = ask_text("Locality", config["locality"])
+    config["organization"] = ask_text("Organization", config["organization"])
+    config["common_name_ca"] = ask_text("Common Name (CN) for CA", config["common_name_ca"])
+    config["common_name_server"] = ask_text("Common Name (CN) for server", config["common_name_server"])
+    config["common_name_client"] = ask_text("Common Name (CN) for client", config["common_name_client"])
 
-    config["dias_valido_ca"] = pedir_entero("Días de validez (CA)", config["dias_valido_ca"], minimo=1)
-    config["dias_valido_servidor"] = pedir_entero("Días de validez (servidor)", config["dias_valido_servidor"], minimo=1)
-    config["dias_valido_cliente"] = pedir_entero("Días de validez (cliente)", config["dias_valido_cliente"], minimo=1)
+    config["validity_days_ca"] = ask_int("Validity (CA, days)", config["validity_days_ca"], minimum=1)
+    config["validity_days_server"] = ask_int("Validity (server, days)", config["validity_days_server"], minimum=1)
+    config["validity_days_client"] = ask_int("Validity (client, days)", config["validity_days_client"], minimum=1)
 
-    # Guardamos la configuración
     try:
-        guardar_config(config)
-        print("Configuración guardada en config.json")
+        save_config(config)
+        print("Configuration saved to config.json")
     except Exception as e:
-        print(f"Error al guardar la configuración: {e}")
+        print(f"Error saving configuration: {e}")
 
 
-def mostrar_menu() -> None:
+def show_menu() -> None:
     """
-    Muestra el menú principal y gestiona la opción elegida.
+    Show the main menu and handle the chosen option.
     """
-    config = cargar_config()
+    config = load_config()
 
     while True:
-        print("\n=== Generador de certificados OPC UA ===")
-        print("1) Crear CA")
-        print("2) Crear certificado de servidor")
-        print("3) Crear certificado de cliente")
-        print("4) Editar configuración por defecto")
-        print("5) Salir")
+        print("\n=== OPC UA Certificate Generator ===")
+        print("1) Create CA")
+        print("2) Create server certificate")
+        print("3) Create client certificate")
+        print("4) Edit default configuration")
+        print("5) Exit")
 
-        opcion = input("\nElige una opción (1-5): ").strip()
+        option = input("\nChoose an option (1-5): ").strip()
 
-        if opcion == "1":
-            opcion_crear_ca(config)
-        elif opcion == "2":
-            opcion_crear_servidor(config)
-        elif opcion == "3":
-            opcion_crear_cliente(config)
-        elif opcion == "4":
-            opcion_editar_config()
-            # Recargamos config por si ha cambiado
-            config = cargar_config()
-        elif opcion == "5":
-            print("Saliendo...")
+        if option == "1":
+            create_ca_option(config)
+        elif option == "2":
+            create_server_option(config)
+        elif option == "3":
+            create_client_option(config)
+        elif option == "4":
+            edit_config_option()
+            # Reload config in case it changed
+            config = load_config()
+        elif option == "5":
+            print("Exiting...")
             break
         else:
-            print("Opción no válida. Introduce 1, 2, 3, 4 o 5.")
+            print("Invalid option. Enter 1, 2, 3, 4 or 5.")
 
 
 if __name__ == "__main__":
-    mostrar_menu()
+    show_menu()
