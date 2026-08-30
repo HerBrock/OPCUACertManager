@@ -2,6 +2,8 @@
 Module to create OPC UA client certificates.
 
 These certificates are signed by the CA created in ca.py.
+
+Phase 3.1 enhancement: create_client_certificate() now returns detailed certificate information.
 """
 
 import ipaddress
@@ -166,7 +168,7 @@ def create_client_certificate(
     common_name: str = "opcua-client",
     san_list: list[str] | None = None,
     validity_days: int = 365,
-) -> tuple[rsa.RSAPrivateKey, x509.Certificate]:
+) -> dict:
     """
     Create and save a complete OPC UA client certificate.
 
@@ -176,33 +178,77 @@ def create_client_certificate(
     3. Builds the client certificate.
     4. Saves the key and certificate to disk.
 
+    Phase 3.1 enhancement: Returns detailed certificate information.
+
     Returns:
-        A tuple containing the client private key and certificate.
+        Dictionary containing:
+        - "success": True if creation was successful.
+        - "client_key_path": Path to the private key file.
+        - "client_cert_path": Path to the certificate file.
+        - "fecha_expiracion": Expiration date (ISO format).
+        - "sujeto": Full subject string.
+        - "emisor": Full issuer string (the CA that signed it).
+        - "error": Error message if creation failed (None otherwise).
     """
+    try:
+        ca_private_key, ca_cert = load_ca_from_disk(ca_folder)
 
-    ca_private_key, ca_cert = load_ca_from_disk(ca_folder)
+        client_private_key = generate_client_key(key_size)
 
-    client_private_key = generate_client_key(key_size)
+        certificate = build_client_certificate(
+            client_private_key=client_private_key,
+            ca_private_key=ca_private_key,
+            ca_cert=ca_cert,
+            country_name=country_name,
+            state_name=state_name,
+            locality_name=locality_name,
+            organization_name=organization_name,
+            common_name=common_name,
+            san_list=san_list,
+            validity_days=validity_days,
+        )
 
-    certificate = build_client_certificate(
-        client_private_key=client_private_key,
-        ca_private_key=ca_private_key,
-        ca_cert=ca_cert,
-        country_name=country_name,
-        state_name=state_name,
-        locality_name=locality_name,
-        organization_name=organization_name,
-        common_name=common_name,
-        san_list=san_list,
-        validity_days=validity_days,
-    )
+        # Save files
+        folder_path = Path(client_folder)
+        key_path, cert_path = save_key_and_cert_to_pem(
+            private_key=client_private_key,
+            cert=certificate,
+            folder_path=folder_path,
+            key_filename="client_key.pem",
+            cert_filename="client_cert.pem",
+        )
 
-    save_key_and_cert_to_pem(
-        private_key=client_private_key,
-        cert=certificate,
-        folder_path=client_folder,
-        key_filename="client_key.pem",
-        cert_filename="client_cert.pem",
-    )
+        # Calculate expiration date
+        fecha_expiracion = (datetime.now(timezone.utc) + timedelta(days=validity_days)).isoformat()
 
-    return client_private_key, certificate
+        # Build subject string
+        sujeto = f"C={country_name}, ST={state_name}, L={locality_name}, O={organization_name}, CN={common_name}"
+
+        # Build issuer string (from CA)
+        ca_subject = ca_cert.subject
+        emisor_parts = []
+        for attr in ca_subject:
+            oid_name = attr.oid._name
+            emisor_parts.append(f"{oid_name.upper()}={attr.value}")
+        emisor = ", ".join(emisor_parts)
+
+        return {
+            "success": True,
+            "client_key_path": str(key_path),
+            "client_cert_path": str(cert_path),
+            "fecha_expiracion": fecha_expiracion,
+            "sujeto": sujeto,
+            "emisor": emisor,
+            "error": None,
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "client_key_path": None,
+            "client_cert_path": None,
+            "fecha_expiracion": None,
+            "sujeto": None,
+            "emisor": None,
+            "error": str(e),
+        }

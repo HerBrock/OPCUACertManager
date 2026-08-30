@@ -2,6 +2,8 @@
 Common utilities for certificate management.
 
 Functions used by multiple modules (ca, server_cert, client_cert).
+
+Phase 3.1 enhancement: save_key_and_cert_to_pem() now returns file paths.
 """
 
 from cryptography import x509
@@ -48,11 +50,23 @@ def save_key_and_cert_to_pem(
     folder_path: str | Path,
     key_filename: str,
     cert_filename: str,
-) -> None:
+) -> Tuple[Path, Path]:
     """
     Save a private key and a certificate to PEM files.
 
     This is generic and works for CA, server, or client.
+
+    Phase 3.1 enhancement: Returns paths to saved files.
+
+    Parameters:
+        private_key: RSA private key to save.
+        cert: X.509 certificate to save.
+        folder_path: Folder where files will be saved.
+        key_filename: Name of the key file.
+        cert_filename: Name of the certificate file.
+
+    Returns:
+        Tuple of (key_path, cert_path) - paths to the saved files.
     """
     folder = Path(folder_path)
     folder.mkdir(parents=True, exist_ok=True)
@@ -73,6 +87,8 @@ def save_key_and_cert_to_pem(
     # Save certificate
     with open(cert_path, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
+
+    return key_path, cert_path
 
 
 def ensure_folder(path: str | Path) -> Path:

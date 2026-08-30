@@ -1,7 +1,9 @@
-﻿"""
+"""
 Module to create a custom CA (Certificate Authority).
 
 This CA will be used later to sign OPC UA server and client certificates.
+
+Phase 3.1 enhancement: create_ca() now returns detailed certificate information.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -108,7 +110,7 @@ def create_ca(
     organization_name: str = "MiEmpresa",
     common_name: str = "My OPC UA CA",
     validity_days: int = 3650,
-) -> tuple[rsa.RSAPrivateKey, x509.Certificate]:
+) -> dict:
     """
     Create and save a complete Certificate Authority.
 
@@ -117,27 +119,65 @@ def create_ca(
     2. Builds the self-signed CA certificate.
     3. Saves both files to disk.
 
+    Phase 3.1 enhancement: Returns detailed certificate information.
+
     Returns:
-        A tuple containing the private key and the certificate.
+        Dictionary containing:
+        - "success": True if creation was successful.
+        - "ca_key_path": Path to the private key file.
+        - "ca_cert_path": Path to the certificate file.
+        - "fecha_expiracion": Expiration date (ISO format).
+        - "sujeto": Full subject string.
+        - "emisor": Full issuer string (same as subject for self-signed CA).
+        - "error": Error message if creation failed (None otherwise).
     """
-    private_key = generate_ca_key(key_size)
+    try:
+        private_key = generate_ca_key(key_size)
 
-    certificate = build_ca_certificate(
-        private_key=private_key,
-        country_name=country_name,
-        state_name=state_name,
-        locality_name=locality_name,
-        organization_name=organization_name,
-        common_name=common_name,
-        validity_days=validity_days,
-    )
+        certificate = build_ca_certificate(
+            private_key=private_key,
+            country_name=country_name,
+            state_name=state_name,
+            locality_name=locality_name,
+            organization_name=organization_name,
+            common_name=common_name,
+            validity_days=validity_days,
+        )
 
-    save_key_and_cert_to_pem(
-        private_key=private_key,
-        cert=certificate,
-        folder_path=ca_folder,
-        key_filename="ca_key.pem",
-        cert_filename="ca_cert.pem",
-    )
+        # Save files
+        folder_path = Path(ca_folder)
+        key_path, cert_path = save_key_and_cert_to_pem(
+            private_key=private_key,
+            cert=certificate,
+            folder_path=folder_path,
+            key_filename="ca_key.pem",
+            cert_filename="ca_cert.pem",
+        )
 
-    return private_key, certificate
+        # Calculate expiration date
+        fecha_expiracion = (datetime.now(timezone.utc) + timedelta(days=validity_days)).isoformat()
+
+        # Build subject and issuer strings
+        sujeto = f"C={country_name}, ST={state_name}, L={locality_name}, O={organization_name}, CN={common_name}"
+        emisor = sujeto  # CA is self-signed
+
+        return {
+            "success": True,
+            "ca_key_path": str(key_path),
+            "ca_cert_path": str(cert_path),
+            "fecha_expiracion": fecha_expiracion,
+            "sujeto": sujeto,
+            "emisor": emisor,
+            "error": None,
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "ca_key_path": None,
+            "ca_cert_path": None,
+            "fecha_expiracion": None,
+            "sujeto": None,
+            "emisor": None,
+            "error": str(e),
+        }

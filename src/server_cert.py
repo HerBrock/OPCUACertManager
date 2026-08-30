@@ -2,6 +2,8 @@
 Module to create OPC UA server certificates.
 
 These certificates will be signed by the CA created in ca.py.
+
+Phase 3.1 enhancement: create_server_certificate() now returns detailed certificate information.
 """
 
 from cryptography import x509
@@ -97,23 +99,24 @@ def build_server_certificate(
 
     # Subject Alternative Name (SAN)
     if san_list:
-        san_list = []
+        san_entries = []
         for name in san_list:
             name = name.strip()
             if name.upper().startswith("DNS:"):
                 dns_name = name.split(":", 1)[1].strip()
-                san_list.append(x509.DNSName(dns_name))
+                san_entries.append(x509.DNSName(dns_name))
             elif name.upper().startswith("IP:"):
                 ip_str = name.split(":", 1)[1].strip()
                 ip_obj = ipaddress.ip_address(ip_str)
-                san_list.append(x509.IPAddress(ip_obj))
+                san_entries.append(x509.IPAddress(ip_obj))
             else:
-                san_list.append(x509.DNSName(name))
+                san_entries.append(x509.DNSName(name))
 
-        builder = builder.add_extension(
-            x509.SubjectAlternativeName(san_list),
-            critical=False,
-        )
+        if san_entries:
+            builder = builder.add_extension(
+                x509.SubjectAlternativeName(san_entries),
+                critical=False,
+            )
 
     cert = builder.sign(ca_private_key, hashes.SHA256())
     return cert
@@ -130,7 +133,7 @@ def create_server_certificate(
     common_name: str = "opcua-server.local",
     san_list: list[str] | None = None,
     validity_days: int = 365,
-) -> tuple[rsa.RSAPrivateKey, x509.Certificate]:
+) -> dict:
     """
     High-level function that:
     1. Loads the CA from disk.
@@ -138,31 +141,77 @@ def create_server_certificate(
     3. Builds the server certificate signed by the CA.
     4. Saves key and certificate to disk.
 
-    Returns the server key and certificate.
+    Phase 3.1 enhancement: Returns detailed certificate information.
+
+    Returns:
+        Dictionary containing:
+        - "success": True if creation was successful.
+        - "server_key_path": Path to the private key file.
+        - "server_cert_path": Path to the certificate file.
+        - "fecha_expiracion": Expiration date (ISO format).
+        - "sujeto": Full subject string.
+        - "emisor": Full issuer string (the CA that signed it).
+        - "error": Error message if creation failed (None otherwise).
     """
-    ca_private_key, ca_cert = load_ca_from_disk(ca_folder)
+    try:
+        ca_private_key, ca_cert = load_ca_from_disk(ca_folder)
 
-    server_private_key = generate_server_key(key_size)
+        server_private_key = generate_server_key(key_size)
 
-    cert = build_server_certificate(
-        server_private_key=server_private_key,
-        ca_private_key=ca_private_key,
-        ca_cert=ca_cert,
-        country_name=country_name,
-        state_name=state_name,
-        locality_name=locality_name,
-        organization_name=organization_name,
-        common_name=common_name,
-        san_list=san_list,
-        validity_days=validity_days,
-    )
+        cert = build_server_certificate(
+            server_private_key=server_private_key,
+            ca_private_key=ca_private_key,
+            ca_cert=ca_cert,
+            country_name=country_name,
+            state_name=state_name,
+            locality_name=locality_name,
+            organization_name=organization_name,
+            common_name=common_name,
+            san_list=san_list,
+            validity_days=validity_days,
+        )
 
-    save_key_and_cert_to_pem(
-        server_private_key,
-        cert,
-        folder_path=server_folder,
-        key_filename="server_key.pem",
-        cert_filename="server_cert.pem",
-    )
+        # Save files
+        folder_path = Path(server_folder)
+        key_path, cert_path = save_key_and_cert_to_pem(
+            private_key=server_private_key,
+            cert=cert,
+            folder_path=folder_path,
+            key_filename="server_key.pem",
+            cert_filename="server_cert.pem",
+        )
 
-    return server_private_key, cert
+        # Calculate expiration date
+        fecha_expiracion = (datetime.now(timezone.utc) + timedelta(days=validity_days)).isoformat()
+
+        # Build subject string
+        sujeto = f"C={country_name}, ST={state_name}, L={locality_name}, O={organization_name}, CN={common_name}"
+
+        # Build issuer string (from CA)
+        ca_subject = ca_cert.subject
+        emisor_parts = []
+        for attr in ca_subject:
+            oid_name = attr.oid._name
+            emisor_parts.append(f"{oid_name.upper()}={attr.value}")
+        emisor = ", ".join(emisor_parts)
+
+        return {
+            "success": True,
+            "server_key_path": str(key_path),
+            "server_cert_path": str(cert_path),
+            "fecha_expiracion": fecha_expiracion,
+            "sujeto": sujeto,
+            "emisor": emisor,
+            "error": None,
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "server_key_path": None,
+            "server_cert_path": None,
+            "fecha_expiracion": None,
+            "sujeto": None,
+            "emisor": None,
+            "error": str(e),
+        }

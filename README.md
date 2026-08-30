@@ -1,4 +1,4 @@
-﻿# OPC UA Certificate Generator
+# OPC UA Certificate Generator
 
 A Python application to create X.509 certificates for OPC UA.
 
@@ -24,6 +24,14 @@ This project was created to learn:
 
 ## Features
 
+- **Project-based workflow** (Phase 1):
+  - Create and manage multiple independent projects.
+  - Each project has its own configuration and certificate log.
+  - Quick access to recent projects.
+- **Modern UI** (Phase 2):
+  - Two main tabs: "Single Certificate" and "Batch Certificates".
+  - Browse buttons for folder selection.
+  - Real-time activity log panel.
 - Create a self-signed Certificate Authority.
 - Create OPC UA server certificates signed by the CA.
 - Create OPC UA client certificates signed by the CA.
@@ -37,7 +45,7 @@ This project was created to learn:
 - Add Subject Alternative Names (SAN), including:
   - DNS names, for example `DNS:opcua-server.local`
   - IP addresses, for example `IP:127.0.0.1`
-- Store default values in `config.json`.
+- Store default values in `config.json` (global) or `config_proyecto.json` (per-project).
 - Use either a console application or a graphical application.
 
 ## Requirements
@@ -82,6 +90,29 @@ The project uses the `cryptography` package to create and save X.509 certificate
 
 ## Running the Application
 
+### Graphical application (recommended)
+
+Run:
+
+```bash
+python app_gui.py
+```
+
+The application will show a **Start Screen** with options to:
+
+- **Create New Project**: Specify a name and folder location.
+- **Open Existing Project**: Browse for a project folder.
+- **Recent Projects**: Quick access to recently opened projects.
+
+Once a project is selected, the main interface appears with:
+
+- **📄 Single Certificate** tab:
+  - 🏛️ CA Certificate
+  - 🖥️ Server Certificate
+  - 💻 Client Certificate
+- **📦 Batch Certificates** tab (placeholder for Phase 4)
+- **Activity Log** panel at the bottom
+
 ### Console application
 
 Run:
@@ -101,20 +132,7 @@ The console menu allows you to:
 5) Exit
 ```
 
-### Graphical application
-
-Run:
-
-```bash
-python app_gui.py
-```
-
-The graphical application uses `tkinter` and contains these tabs:
-
-- **Create CA**
-- **Create Server**
-- **Create Client**
-- **Configuration**
+> Note: The console application currently uses the global `config.json`. Project-based workflow for console is planned for a future phase.
 
 ## How Certificate Creation Works
 
@@ -159,11 +177,63 @@ For example:
 DNS:opcua-server.local,DNS:localhost,IP:127.0.0.1
 ```
 
+## Project-Based Workflow
+
+### What is a Project?
+
+A **project** is a folder with a specific structure that contains all configuration and logs for a batch of certificates.
+
+```
+MiProyecto/
+├── config_proyecto.json       ← Project configuration
+├── registro_certificados.csv  ← Certificate generation log
+└── certs/
+    ├── ca/                    ← CA certificates
+    ├── server/                ← Server certificates
+    └── client/                ← Client certificates
+```
+
+### Why Use Projects?
+
+- ✅ Each project is independent (e.g., "Client_A", "Laboratory", "Production").
+- ✅ Each project has its own configuration and history.
+- ✅ Easy to audit: CSV shows all generated certificates.
+- ✅ Easy to backup: copy the entire project folder.
+- ✅ Portable: move the project folder to another machine.
+
+### Recent Projects
+
+The application maintains a `proyectos_recientes.json` file in the app root that stores paths to recently opened or created projects.
+
+- Limited to 10 projects by default.
+- Shows in the Start Screen for quick access.
+- Automatically cleaned of invalid entries.
+
+### Documentation
+
+For detailed information on project management, see:
+
+- [`docs/PROYECTOS.md`](docs/PROYECTOS.md) - Complete guide to projects.
+- [`docs/FASE_1_RESUMEN.md`](docs/FASE_1_RESUMEN.md) - Phase 1 technical summary.
+- [`docs/FASE_2_RESUMEN.md`](docs/FASE_2_RESUMEN.md) - Phase 2 technical summary.
+
+### Testing
+
+Run the test scripts:
+
+```bash
+# Phase 1 complete test
+python tests/test_phase1_complete.py
+
+# Phase 2 UI structure test
+python tests/test_phase2_ui.py
+```
+
 ## Default Configuration
 
-The application stores default values in `config.json`.
+The application stores default values in `config.json` (global) and `config_proyecto.json` (per-project).
 
-Example:
+Example `config.json`:
 
 ```json
 {
@@ -183,7 +253,7 @@ Example:
 }
 ```
 
-You can edit this file manually, use the console application's configuration option, or use the graphical application's **Configuration** tab.
+You can edit this file manually, use the console application's configuration option, or use the graphical application's Configuration tab (to be re-added in a future phase).
 
 ## Project Structure
 
@@ -193,6 +263,7 @@ CertApp/
 ├── README.md
 ├── requirements.txt
 ├── config.json
+├── proyectos_recientes.json    ← Recent projects (auto-generated)
 ├── app_console.py
 ├── app_gui.py
 │
@@ -202,22 +273,22 @@ CertApp/
 │   ├── server_cert.py
 │   ├── client_cert.py
 │   ├── utils.py
-│   └── config.py
+│   ├── config.py
+│   ├── project_manager.py      ← Project management
+│   └── start_screen.py         ← Start screen UI
 │
 ├── tests/
 │   ├── __init__.py
-│   └── test_certs.py
+│   ├── test_certs.py
+│   ├── test_project_manager.py
+│   ├── test_recent_projects.py
+│   ├── test_phase1_complete.py
+│   └── test_phase2_ui.py
 │
-└── certs/
-    ├── ca/
-    │   ├── ca_key.pem
-    │   └── ca_cert.pem
-    ├── server/
-    │   ├── server_key.pem
-    │   └── server_cert.pem
-    └── client/
-        ├── client_key.pem
-        └── client_cert.pem
+└── docs/
+    ├── PROYECTOS.md            ← Project documentation
+    ├── FASE_1_RESUMEN.md       ← Phase 1 summary
+    └── FASE_2_RESUMEN.md       ← Phase 2 summary
 ```
 
 ## Certificate Files
@@ -270,6 +341,30 @@ git status
 ```
 
 Verify that files such as `ca_key.pem`, `server_key.pem`, and `client_key.pem` are not listed as staged changes.
+
+## Development Phases
+
+### Phase 1: Project Management (✅ COMPLETED)
+
+- ✅ 1.1: Project folder structure (`config_proyecto.json`, `registro_certificados.csv`).
+- ✅ 1.2: Recent projects file (`proyectos_recientes.json`).
+- ✅ 1.3: Start screen (create, open, recent projects).
+
+### Phase 2: Main Interface (✅ COMPLETED)
+
+- ✅ 2.1: Tabs for "Single" and "Batch" certificates.
+- ✅ 2.2: "Browse" buttons for paths.
+- ✅ 2.3: Real-time log panel.
+
+### Phase 3: Business Logic (🔜 PLANNED)
+
+- 3.1: Advanced CSV logging (expiration date, subject, issuer, status).
+- 3.2: Existence validation (overwrite/skip/cancel).
+
+### Phase 4: Batch Functionality (🔜 PLANNED)
+
+- 4.1: Import CSV for batches.
+- 4.2: Batch generation loop with progress bar.
 
 ## License
 
