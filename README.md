@@ -60,11 +60,11 @@ This project was created to learn:
 ### 1. Clone the repository
 
 ```bash
-git clone <YOUR_REPOSITORY_URL>
+git clone https://github.com/HerBrock/OPCUACertManager
 cd CertApp
 ```
 
-Replace `<YOUR_REPOSITORY_URL>` with your GitHub repository URL.
+Replace `https://github.com/HerBrock/OPCUACertManager` with your GitHub repository URL.
 
 ### 2. Create a virtual environment
 
