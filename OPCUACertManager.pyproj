@@ -1,0 +1,103 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>41c7d6a7-6fc1-4d5e-8ec4-4259190e2675</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>run.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>OPCUACertManager</Name>
+    <RootNamespace>OPCUACertManager</RootNamespace>
+    <InterpreterId>MSBuild|enviroment|$(MSBuildProjectFullPath)</InterpreterId>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="run.py" />
+    <Compile Include="src\core\batch_generator.py" />
+    <Compile Include="src\core\ca.py" />
+    <Compile Include="src\core\client_cert.py" />
+    <Compile Include="src\core\project_manager.py" />
+    <Compile Include="src\core\server_cert.py" />
+    <Compile Include="src\core\__init__.py" />
+    <Compile Include="src\ui\main_window.py" />
+    <Compile Include="src\ui\menu_bar.py" />
+    <Compile Include="src\ui\start_screen.py" />
+    <Compile Include="src\ui\__init__.py" />
+    <Compile Include="src\utils\config.py" />
+    <Compile Include="src\utils\logger.py" />
+    <Compile Include="src\utils\__init__.py" />
+    <Compile Include="src\__init__.py" />
+    <Compile Include="src\__version__.py" />
+    <Compile Include="tests\test_phase1_complete.py" />
+    <Compile Include="tests\test_phase2_ui.py" />
+    <Compile Include="tests\test_project_manager.py" />
+    <Compile Include="tests\test_recent_projects.py" />
+    <Compile Include="tests\__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="enviroment\">
+      <Id>enviroment</Id>
+      <Version>3.14</Version>
+      <Description>enviroment (Python 3.14 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitattributes" />
+    <Content Include=".gitignore" />
+    <Content Include=".gitignore.txt" />
+    <Content Include="batch_certificates_example.csv" />
+    <Content Include="CHANGELOG.md" />
+    <Content Include="docs\ARCHITECTURE.md" />
+    <Content Include="docs\DEVELOPMENT.md" />
+    <Content Include="docs\MIGRATION_GUIDE.md" />
+    <Content Include="docs\README.md" />
+    <Content Include="docs\UPDATE_SUMMARY_v0.1.0.md" />
+    <Content Include="docs\USER_GUIDE.md" />
+    <Content Include="LICENSE.txt" />
+    <Content Include="proyectos_recientes.json" />
+    <Content Include="pyproject.toml" />
+    <Content Include="README.md" />
+    <Content Include="requirements.txt" />
+    <Content Include="src\core\__pycache__\batch_generator.cpython-311.pyc" />
+    <Content Include="src\core\__pycache__\ca.cpython-311.pyc" />
+    <Content Include="src\core\__pycache__\__init__.cpython-311.pyc" />
+    <Content Include="src\ui\__pycache__\main_window.cpython-311.pyc" />
+    <Content Include="src\ui\__pycache__\__init__.cpython-311.pyc" />
+    <Content Include="src\__pycache__\__init__.cpython-311.pyc" />
+    <Content Include="src\__pycache__\__version__.cpython-311.pyc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="docs\" />
+    <Folder Include="src\" />
+    <Folder Include="src\core\" />
+    <Folder Include="src\core\__pycache__\" />
+    <Folder Include="src\ui\" />
+    <Folder Include="src\ui\__pycache__\" />
+    <Folder Include="src\utils\" />
+    <Folder Include="src\__pycache__\" />
+    <Folder Include="tests\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <!--<Target Name="CoreCompile" />-->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>
