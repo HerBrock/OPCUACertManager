@@ -1,8 +1,8 @@
-# Arquitectura del Sistema
+# System Architecture
 
-## Visíłłn General
+## Overview
 
-OPCUACertManager sigue una arquitectura en capas para separar claramente la lógica de negocio de la interfaz de usuario:
+OPCUACertManager follows a layered architecture to clearly separate business logic from the user interface:
 
 ```
 ┌─────────────────────────────────────┐
@@ -10,8 +10,8 @@ OPCUACertManager sigue una arquitectura en capas para separar claramente la lóg
 │  - main_window.py                   │
 │  - start_screen.py                  │
 │  - menu_bar.py                      │
-│  - (dialogs.py - futuro)            │
-│  - (widgets.py - futuro)            │
+│  - (dialogs.py - future)            │
+│  - (widgets.py - future)            │
 └─────────────────────────────────────┘
                   ↓
 ┌─────────────────────────────────────┐
@@ -27,60 +27,46 @@ OPCUACertManager sigue una arquitectura en capas para separar claramente la lóg
 │         Utils Layer (Helpers)       │
 │  - config.py                        │
 │  - logger.py                        │
-│  - (i18n.py - futuro)               │
+│  - (i18n.py - future)               │
 └─────────────────────────────────────┘
 ```
 
-## Principios de Diseño
+## Design Principles
 
-### 1. Separacíłłn de Responsabilidades
+### 1. Separation of Responsibilities
 
-- **UI Layer**: Solo se encarga de mostrar datos y capturar entrada del usuario
-- **Core Layer**: Contiene toda la lógica de negocio (generacíłłn de certificados, gestiíłłn de proyectos)
-- **Utils Layer**: Funciones auxiliares (configuracíłłn, logging)
+- **UI Layer**: Only handles displaying data and capturing user input.
+- **Core Layer**: Contains all business logic, including certificate generation and project management.
+- **Utils Layer**: Provides helper functions for configuration and logging.
 
-**Regla importante**: La UI NUNCA conoce los detalles de implementacíłłn del core. Solo llama a funciones y recibe resultados.
+**Important rule**: The UI must never depend on the Core Layer's implementation details. It only calls defined functions and processes their results.
 
-### 2. Inyeccíłłn de Dependencias
+### 2. Immutability
 
-Las funciones del core reciben rutas como paráłłmetros, no las hardcodean:
+The CA is **immutable within each project**:
 
-```python
-# ✅ CORRECTO
-def create_ca(ca_folder: Path, ...) -> dict:
-    ...
+- It is created only once when the project is initialized.
+- It cannot be modified or recreated.
+- Server and client certificates depend on this CA.
+- If another CA is required, a new project must be created.
 
-# ❌ INCORRECTO
-def create_ca() -> dict:
-    ca_folder = Path("certs/ca")  # Hardcodeado
-    ...
-```
+**Implementation**:
 
-### 3. Inmutabilidad
+- `project_manager.has_valid_ca()` verifies that a valid CA exists.
+- `main_window.py` blocks certificate tabs when no CA is available.
+- `start_screen.py` requires CA creation immediately after the project is created.
 
-La CA es **inmutable por proyecto**:
+### 3. Traceability
 
-- Se crea una sola vez al inicio del proyecto
-- No se puede modificar ni recrear
-- Los certificados de servidor/cliente dependen de esta CA
-- Si se necesita otra CA, se debe crear un nuevo proyecto
+Every certificate is logged, and log entries are never removed:
 
-**Implementacíłłn**:
-- `project_manager.has_valid_ca()` verifica existencia
-- `main_window.py` bloquea pestañłłłs si no hay CA
-- `start_screen.py` obliga a crear CA inmediatamente después del proyecto
+- `certificate_log.csv` is immutable and append-only.
+- If a physical certificate is deleted, it is marked as `deleted` in the log.
+- The log enables a complete audit trail of all operations.
 
-### 4. Trazabilidad
+## Data Flow
 
-Todo certificado se registra, nada se elimina del log:
-
-- `registro_certificados.csv` es inmutable (solo se ańlade)
-- Si se elimina un certificado físico, se marca como "deleted" en el log
-- El log permite auditoríłł completa de todas las operaciones
-
-## Flujo de Datos
-
-### Creacíłłn de Proyecto
+### Project Creation
 
 ```
 StartScreen._create_new_project()
@@ -93,35 +79,35 @@ ca.create_ca()
     ↓
 project_manager.log_certificate()
     ↓
-MainWindow (con CA inmutable)
+MainWindow (with immutable CA)
 ```
 
-### Generacíłłn de Certificado
+### Certificate Generation
 
 ```
 MainWindow._create_server_certificate()
     ↓
-Verifica: project_manager.has_valid_ca()
+Verify: project_manager.has_valid_ca()
     ↓
 server_cert.create_server_certificate()
     ↓
 project_manager.log_certificate()
     ↓
-UI muestra resultado
+UI displays the result
 ```
 
-## Estructura de Carpetas
+## Folder Structure
 
 ```
 OPCUACertManager/
 ├── .gitignore
-├── .python-version          # Opcional: para pyenv
+├── .python-version          # Optional: for pyenv
 ├── CHANGELOG.md
 ├── LICENSE.txt
 ├── pyproject.toml
 ├── README.md
 ├── requirements.txt
-├── proyectos_recientes.json # Auto-generado
+├── recent_projects.json     # Auto-generated
 │
 ├── src/
 │   ├── __init__.py
@@ -138,8 +124,8 @@ OPCUACertManager/
 │   │   ├── start_screen.py
 │   │   ├── main_window.py
 │   │   ├── menu_bar.py
-│   │   ├── dialogs.py       # Futuro
-│   │   └── widgets.py       # Futuro
+│   │   ├── dialogs.py       # Future
+│   │   └── widgets.py       # Future
 │   └── utils/
 │       ├── __init__.py
 │       ├── config.py
@@ -156,25 +142,25 @@ OPCUACertManager/
     └── DEVELOPMENT.md
 ```
 
-## Seguridad
+## Security
 
-### Claves Privadas
+### Private Keys
 
-- **NUNCA** subir `*_key.pem` a GitHub
-- `.gitignore` ignora automáticamente todos los `*_key.pem`
-- Las claves privadas son sensibles: quien las tenga puede impersonar la CA/servidor/cliente
+- **NEVER** upload `*_key.pem` files to GitHub.
+- `.gitignore` automatically ignores all `*_key.pem` files.
+- Private keys are sensitive: anyone who obtains one may impersonate the corresponding CA, server, or client.
 
-### Validacíłłn de Entrada
+### Input Validation
 
-- Rutas se resuelven con `Path().resolve()` para evitar path traversal
-- Campos obligatorios se validan antes de crear certificados
-- Se confirma antes de sobrescribir archivos existentes
+- Paths are resolved with `Path().resolve()` to help prevent path traversal.
+- Required fields are validated before certificates are created.
+- User confirmation is required before existing files are overwritten.
 
-## Extensiones Futuras
+## Future Extensions
 
-### Internacionalizacíłłn (i18n)
+### Internationalization (i18n)
 
-Estructura planificada para `src/utils/i18n.py`:
+Planned structure for `src/utils/i18n.py`:
 
 ```python
 TRANSLATIONS = {
@@ -184,34 +170,35 @@ TRANSLATIONS = {
         ...
     },
     "en": {
-        "menu_file": "Files",
+        "menu_file": "File",
         "menu_options": "Options",
         ...
     }
 }
 
+
 def _(key: str, lang: str = "es") -> str:
     return TRANSLATIONS.get(lang, {}).get(key, key)
 ```
 
-### Base de Datos
+### Database
 
-Actualmente se usa CSV para el log. Para mayor trazabilidad:
+The application currently uses CSV for logging. For enhanced traceability, a future database implementation could provide:
 
-- SQLite para consultas complejas
-- Índices por fecha, tipo, estado
-- Backup automático
+- SQLite support for complex queries.
+- Indexes by date, type, and status.
+- Automatic backups.
 
-## Patrones de Diseńo Utilizados
+## Design Patterns Used
 
-| Patríłłn | Ubicacíłłn | Propíłłsito |
-|----------|------------|-------------|
-| **Factory** | `ca.create_ca()`, `server_cert.create_server_certificate()` | Encapsula creacíłłn de objetos complejos |
-| **Strategy** | `batch_generator.generate_batch_certificates()` | Permite diferentes estrategias de generacíłłn |
-| **Observer** | `progress_callback` en batch | Notifica progreso a la UI |
-| **Singleton** | `default_logger` en `logger.py` | Única instancia de logger |
+| Pattern | Location | Purpose |
+|---------|----------|---------|
+| **Factory** | `ca.create_ca()`, `server_cert.create_server_certificate()` | Encapsulates the creation of complex objects. |
+| **Strategy** | `batch_generator.generate_batch_certificates()` | Supports different certificate-generation strategies. |
+| **Observer** | `progress_callback` in the batch generator | Notifies the UI about generation progress. |
+| **Singleton** | `default_logger` in `logger.py` | Provides a single logger instance. |
 
-## Referencias
+## References
 
 - [Cryptography Library](https://cryptography.io/)
 - [X.509 Standard](https://www.itu.int/rec/T-REC-X.509)

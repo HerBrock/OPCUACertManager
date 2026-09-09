@@ -36,3 +36,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Private keys (*_key.pem) properly ignored in .gitignore
 - CA validation before allowing certificate generation
+## v1.1.0 (2026-09-09)
+
+### Fix
+
+- **file**: docs updates
+
+## v0.1.0 (2026-09-06)
+
+### Feat
+
+- major refactor to v0.1.0 with professional structure

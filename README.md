@@ -1,6 +1,6 @@
 # OPC UA Certificate Manager
 
-**Version:** 0.1.0  
+**Version:** 0.1.1  
 **Description:** Professional X.509 certificate manager for OPC UA environments
 
 A Python application to generate, manage, and validate X.509 certificates for OPC UA (Kepware, Ignition, Ewon, etc.).

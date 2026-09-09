@@ -1,108 +1,109 @@
-# Guía de Usuario
+# User Guide
 
-## Primeros Pasos
+## Getting Started
 
-### 1. Instalacíłłn
+### 1. Installation
 
 ```bash
-# Clonar repositorio
+# Clone the repository
 git clone https://github.com/HerBrock/OPCUACertManager.git
 cd OPCUACertManager
 
-# Crear entorno virtual (recomendado)
+# Create a virtual environment (recommended)
 python -m venv .venv
 .venv\Scripts\Activate  # Windows
 
-# Instalar dependencias
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Ejecutar la Aplicacíłłn
+### 2. Run the Application
 
 ```bash
 python src/ui/main_window.py
 ```
 
-### 3. Crear Primer Proyecto
+### 3. Create Your First Project
 
-1. **Pantalla de Inicio**: Haz clic en "Create New Project"
-2. **Nombre del Proyecto**: Ej: "Kepware_Plant"
-3. **Carpeta**: Selecciona ubicacíłłn (ej: `C:\Proyectos\Kepware_Plant`)
-4. **Configurar CA**: Completa campos obligatorios (*):
-   - `Common Name (CN)*`: Ej: "Kepware CA"
-   - `Organization*`: Ej: "MiEmpresa"
-   - `Country*`: Ej: "ES"
-5. **Crear CA**: Haz clic en "Create CA"
+1. **Start Screen**: Click **Create New Project**.
+2. **Project Name**: For example, `Kepware_Plant`.
+3. **Folder**: Select a location, for example, `C:\Projects\Kepware_Plant`.
+4. **Configure the CA**: Complete the required fields marked with `*`:
+   - `Common Name (CN)*`: For example, `Kepware CA`.
+   - `Organization*`: For example, `MyCompany`.
+   - `Country*`: For example, `ES`.
+5. **Create the CA**: Click **Create CA**.
 
-### 4. Generar Certificados
+### 4. Generate Certificates
 
-Ahora puedes generar:
-- ✅ Certificados de servidor OPC UA
-- ✅ Certificados de cliente OPC UA
-- ✅ Lotes de certificados desde CSV
+You can now generate:
 
-## Flujo de Trabajo
+- OPC UA server certificates.
+- OPC UA client certificates.
+- Batches of certificates from a CSV file.
 
-### Escenario 1: Certificado Único para Kepware
+## Workflow
 
-```
-1. Crear proyecto "Kepware_Plant"
+### Scenario 1: Single Kepware Certificate
+
+```text
+1. Create the project "Kepware_Plant"
    ↓
-2. Configurar CA (inmutable)
+2. Configure the CA (immutable)
    ↓
-3. Pestańa "Server Certificate"
+3. Open the "Server Certificate" tab
    - Common Name: "kepware-server.local"
    - SAN: DNS:kepware, IP:192.168.1.100
    ↓
 4. Click "Create Server Certificate"
    ↓
-5. Copiar certificados a Kepware
+5. Copy the certificates to Kepware
 ```
 
-### Escenario 2: Míłłltiples Clientes para Ignition
+### Scenario 2: Multiple Ignition Clients
 
-```
-1. Crear proyecto "Ignition_Lab"
+```text
+1. Create the project "Ignition_Lab"
    ↓
-2. Configurar CA
+2. Configure the CA
    ↓
-3. Preparar CSV (batch_certificates.csv):
+3. Prepare the CSV file (batch_certificates.csv):
    ```csv
-   nombre_certificado,cantidad
+   certificate_name,count
    client_hmi_01,1
    client_hmi_02,1
    client_scada,1
    ```
    ↓
-4. Pestańa "Batch Certificates"
-   - Seleccionar CSV
-   - Tipo: "client"
+4. Open the "Batch Certificates" tab
+   - Select the CSV file
+   - Type: "client"
    ↓
 5. Click "Start Batch Generation"
    ↓
-6. Copiar certificados a Ignition
+6. Copy the certificates to Ignition
 ```
 
-## Interfaz de Usuario
+## User Interface
 
-### Pantalla de Inicio
+### Start Screen
 
-```
+```text
 ┌────────────────────────────────────┐
-│   OPC UA Certificate Generator     │
+│      OPC UA Certificate Generator  │
 │                                    │
-│   [Create New Project]             │
-│   [Open Existing Project]          │
+│      [Create New Project]          │
+│      [Open Existing Project]       │
 │                                    │
-│   Recent Projects:                 │
-│   - Kepware_Plant      [Open]     │
-│   - Ignition_Lab       [Open]     │
+│      Recent Projects:              │
+│      - Kepware_Plant      [Open]   │
+│      - Ignition_Lab       [Open]   │
 └────────────────────────────────────┘
 ```
 
-### Ventana Principal
+### Main Window
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │ Files  Options  Help                                │
 ├─────────────────────────────────────────────────────┤
@@ -111,183 +112,185 @@ Ahora puedes generar:
 │                                                     │
 │   Create Server Certificate                         │
 │   Server Folder: [C:\...\certs/server] [Browse...]  │
-│   Common Name:   [servidor-opcua.local          ]   │
-│   SAN:           [DNS:server                     ]   │
-│                [ IP:192.168.1.100                ]   │
+│   Common Name:   [opcua-server.local             ]  │
+│   SAN:           [DNS:server                     ]  │
+│                  [IP:192.168.1.100               ]  │
 │                                                     │
 │   [Create Server Certificate]                       │
 │                                                     │
 ├─────────────────────────────────────────────────────┤
 │ Activity Log                                        │
-│ [19:45:32] Project loaded: Kepware_Plant           │
+│ [19:45:32] Project loaded: Kepware_Plant            │
 │ [19:45:35] Server certificate created successfully  │
 │                                                     │
 │ [Clear Log]                                         │
 └─────────────────────────────────────────────────────┘
 ```
 
-## Barra de Meníłł
+## Menu Bar
 
 ### Files
 
-| Opcíłłn | Atajo | Descripcíłłn |
-|---------|-------|--------------|
-| New Project | Ctrl+N | Crea nuevo proyecto |
-| Open Project... | Ctrl+O | Abre proyecto existente |
-| Recent Projects | - | Lista de íšltimos 10 proyectos |
-| Exit | Alt+F4 | Cierra la aplicacíłłn |
+| Option | Shortcut | Description |
+|---|---|---|
+| New Project | Ctrl+N | Create a new project. |
+| Open Project... | Ctrl+O | Open an existing project. |
+| Recent Projects | - | List the 10 most recently opened projects. |
+| Exit | Alt+F4 | Close the application. |
 
 ### Options
 
-| Opcíłłn | Descripcíłłn |
-|---------|--------------|
-| Global Settings... | Configuracíłłn global (futuro) |
-| Language | Selector de idioma (futuro) |
-| Preferences... | Preferencias (futuro) |
+| Option | Description |
+|---|---|
+| Global Settings... | Global settings (planned). |
+| Language | Language selector (planned). |
+| Preferences... | Application preferences (planned). |
 
 ### Help
 
-| Opcíłłn | Descripcíłłn |
-|---------|--------------|
-| Documentation | Abre README.md |
-| View Logs | Muestra log de certificados |
-| About... | Informacíłłn de versíłłn y licencia |
+| Option | Description |
+|---|---|
+| Documentation | Open `README.md`. |
+| View Logs | Display the certificate log. |
+| About... | Display version and license information. |
 
-## Pestańa Certificate Log
+## Certificate Log Tab
 
-### Funcionalidades
+### Features
 
-- **Tabla**: Muestra todos los certificados generados
-- **Columnas**:
-  - Timestamp: Fecha y hora de creacíłłn
-  - Certificate Name: Nombre del archivo
-  - Type: CA/Server/Client
-  - Status: created/updated/skipped/deleted
-  - Expiration Date: Fecha de expiracíłłn
-  - Subject: Sujeto del certificado
+- **Table**: Displays all generated certificates.
+- **Columns**:
+  - Timestamp: Date and time of creation.
+  - Certificate Name: Certificate file name.
+  - Type: CA, server, or client.
+  - Status: `created`, `updated`, `skipped`, or `deleted`.
+  - Expiration Date: Certificate expiration date.
+  - Subject: Certificate subject.
+- **Buttons**:
+  - **Refresh**: Reload the table.
+  - **Export to CSV...**: Export the log to a selected CSV location.
 
-- **Botones**:
-  - Refresh: Recarga la tabla
-  - Export to CSV...: Exporta a CSV en ubicacíłłn elegida
+### Usage Example
 
-### Ejemplo de Uso
-
-```
-1. Pestańa "📋 Certificate Log"
+```text
+1. Open the "📋 Certificate Log" tab
    ↓
-2. Ver tabla con histórico de certificados
+2. Review the certificate history table
    ↓
 3. Click "Export to CSV..."
    ↓
-4. Guardar como "audit_2026_09.csv"
+4. Save the file as "audit_2026_09.csv"
    ↓
-5. Enviar a auditoríłła
+5. Send it for auditing
 ```
 
-## Solucíłłn de Problemas
+## Troubleshooting
 
 ### FAQ
 
-**P: ¿Puedo modificar la CA después de creada?**
+**Q: Can I modify the CA after it has been created?**
 
-R: **No**. La CA es inmutable por proyecto. Si necesitas otra CA, crea un nuevo proyecto.
+A: **No.** The CA is immutable within each project. If you need another CA, create a new project.
 
-**P: ¿Qué�ł pasa si pierdo la clave privada de la CA?**
+**Q: What happens if I lose the CA private key?**
 
-R: Deberáłłs crear una nueva CA y todos los certificados firmados por la CA anterior dejaráłłn de ser váųlidos. Crea un nuevo proyecto.
+A: You must create a new CA. All certificates signed by the previous CA will no longer be usable for trust validation. Create a new project and issue replacement certificates.
 
-**P: ¿Puedo usar la misma CA para míšltiples proyectos?**
+**Q: Can I use the same CA for multiple projects?**
 
-R: Técnicamente síš, copiendo `ca_key.pem` y `ca_cert.pem`, pero **no es recomendable**. Cada proyecto debe tener su propia CA para mejor trazabilidad.
+A: Technically, yes, by copying `ca_key.pem` and `ca_cert.pem`, but this is **not recommended**. Each project should have its own CA for better traceability and isolation.
 
-**P: ¿Los certificados expiran?**
+**Q: Do certificates expire?**
 
-R: Síš. Por defecto:
-- CA: 10 añųos (3650 díšas)
-- Server/Client: 1 añųo (365 díšas)
+A: Yes. The default validity periods are:
 
-Puedes cambiarlo al crear el certificado.
+- CA: 10 years (3,650 days).
+- Server and client certificates: 1 year (365 days).
 
-**P: ¿Qué�ł es un SAN?**
+You can change the validity period when creating a certificate.
 
-R: **Subject Alternative Name**. Permite que un certificado sea váųlido para míšltiples nombres/IPs.
+**Q: What is a SAN?**
 
-Ejemplo para servidor OPC UA:
-```
+A: **Subject Alternative Name**. A SAN allows a certificate to be valid for multiple names and IP addresses.
+
+Example for an OPC UA server:
+
+```text
 DNS:opcua-server.local
 DNS:localhost
 IP:127.0.0.1
 IP:192.168.1.100
 ```
 
-### Errores Comunes
+### Common Errors
 
-**Error: "CA Not Found"**
+**Error: `CA Not Found`**
 
-Causa: Intentas crear certificado de servidor/cliente sin CA.
+Cause: You are trying to create a server or client certificate without a CA.
 
-Solucíłłn: Ve a la pestańa "CA Certificate" y crea la CA primero.
+Solution: Open the **CA Certificate** tab and create the CA first.
 
-**Error: "Invalid Value"**
+**Error: `Invalid Value`**
 
-Causa: Introdujiste texto no núšmico en campo numéłłrico.
+Cause: Non-numeric text was entered in a numeric field.
 
-Solucíłłn: Usa solo núšmeros en campos como "Validity (days)".
+Solution: Use numbers only in fields such as **Validity (days)**.
 
-**Error: "Certificate Already Exists"**
+**Error: `Certificate Already Exists`**
 
-Causa: El archivo de certificado ya existe.
+Cause: The certificate file already exists.
 
-Opciones:
-- **Yes**: Sobrescribe el existente
-- **No**: Salta esta operacíłłn
-- **Cancel**: Cancela toda la operacíłłn
+Options:
 
-**Error: "StringVar vacíłło después de Browse"**
+- **Yes**: Overwrite the existing file.
+- **No**: Skip this operation.
+- **Cancel**: Cancel the entire operation.
 
-Causa: Bug conocido en versiones < 0.1.0.
+**Error: `StringVar not updated after Browse`**
 
-Solucíłłn: Actualiza a v0.1.0 o posterior.
+Cause: This was a known issue in versions earlier than 0.1.0.
 
-## Seguridad
+Solution: Update to version 0.1.0 or later.
 
-### Buenas Práłłcticas
+## Security
 
-1. **Nunca subas `*_key.pem` a GitHub**
-   - El `.gitignore` ya los ignora automáticamente
-   - Verifica con `git status` antes de hacer commit
+### Best Practices
 
-2. **Protege las claves privadas**
-   - Usa permisos de sistema operativo
-   - No envíšes por email o chat
+1. **Never upload `*_key.pem` files to GitHub.**
+   - The `.gitignore` file already excludes them automatically.
+   - Verify with `git status` before committing.
 
-3. **Usa CA separadas por entorno**
-   - `Kepware_Dev` para desarrollo
-   - `Kepware_Prod` para produccíłłn
+2. **Protect private keys.**
+   - Use operating-system permissions.
+   - Do not send private keys by email or chat.
 
-4. **Renueva certificados antes de expirar**
-   - Configura alertas 30 díšas antes
-   - Usa el Certificate Log para verificar fechas
+3. **Use separate CAs for each environment.**
+   - `Kepware_Dev` for development.
+   - `Kepware_Prod` for production.
 
-### Quéèł� Hacer Si...
+4. **Renew certificates before they expire.**
+   - Configure alerts 30 days before expiration.
+   - Use the Certificate Log to verify expiration dates.
 
-**...se expone una clave privada:**
+### What to Do If...
 
-1. Crea nueva CA inmediatamente
-2. Genera nuevos certificados para todos los servidores/clientes
-3. Distribuye nueva CA a todos los sistemas
-4. Elimina certificados antiguos
+**...a private key is exposed:**
 
-**...necesitas un certificado para produccíłłn:**
+1. Create a new CA immediately.
+2. Generate new certificates for all servers and clients.
+3. Distribute the new CA certificate to all trusted systems.
+4. Revoke or remove the old certificates according to your operational process.
 
-1. Usa CA especíłłfica para produccíłłn
-2. Documenta en el log el propíłłsito
-3. Guarda backup en lugar seguro
-4. Considera usar PKI empresarial
+**...you need a production certificate:**
 
-## Recursos Adicionales
+1. Use a CA dedicated to the production environment.
+2. Document the certificate's purpose in the log.
+3. Store a secure backup of the CA and certificate data.
+4. Consider using an enterprise PKI for production systems.
 
-- [Documentacíłłn Tíłłcnica](docs/ARCHITECTURE.md)
-- [Guíłła para Desarrolladores](docs/DEVELOPMENT.md)
-- [Especificacíłłn OPC UA](https://reference.opcfoundation.org/)
+## Additional Resources
+
+- [Technical Documentation](docs/ARCHITECTURE.md)
+- [Developer Guide](docs/DEVELOPMENT.md)
+- [OPC UA Specification](https://reference.opcfoundation.org/)
 - [Cryptography Library](https://cryptography.io/)
