@@ -12,6 +12,7 @@
     <Name>OPCUACertManager</Name>
     <RootNamespace>OPCUACertManager</RootNamespace>
     <InterpreterId>MSBuild|enviroment|$(MSBuildProjectFullPath)</InterpreterId>
+    <TestFramework>Pytest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -43,23 +44,13 @@
     <Compile Include="tests\__init__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="enviroment\">
-      <Id>enviroment</Id>
-      <Version>3.14</Version>
-      <Description>enviroment (Python 3.14 (64-bit))</Description>
-      <InterpreterPath>Scripts\python.exe</InterpreterPath>
-      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
-      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
-      <Architecture>X64</Architecture>
-    </Interpreter>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
     <Content Include=".gitignore.txt" />
     <Content Include="docs\batch_certificates_example.csv" />
     <Content Include="CHANGELOG.md" />
     <Content Include="docs\ARCHITECTURE.md" />
+    <Content Include="docs\Comandos.txt" />
     <Content Include="docs\DEVELOPMENT.md" />
     <Content Include="docs\USER_GUIDE.md" />
     <Content Include="LICENSE.txt" />
@@ -88,6 +79,17 @@
     <Folder Include="src\utils\" />
     <Folder Include="src\__pycache__\" />
     <Folder Include="tests\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="enviroment\">
+      <Id>enviroment</Id>
+      <Version>3.14</Version>
+      <Description>enviroment (Python 3.14 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

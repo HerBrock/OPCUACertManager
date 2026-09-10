@@ -1,54 +1,54 @@
-# Guía para Desarrolladores
+# Developer Guide
 
-## Estructura del Proyecto
+## Project Structure
 
-```
+```text
 OPCUACertManager/
-├── src/                    # Código fuente principal
-│   ├── core/               # Líłłgica de negocio (sin dependencias de tkinter)
-│   ├── ui/                 # Interfaz gráfica (tkinter)
-│   └── utils/              # Utilidades
-├── tests/                  # Tests unitarios y de integracíłłn
-├── docs/                   # Documentacíłłn
-└── ...                     # Archivos de configuracíłłn del proyecto
+├── src/                    # Main source code
+│   ├── core/               # Business logic without tkinter dependencies
+│   ├── ui/                 # Graphical user interface (tkinter)
+│   └── utils/              # Utility modules
+├── tests/                  # Unit and integration tests
+├── docs/                   # Documentation
+└── ...                     # Project configuration files
 ```
 
-## Cíłłmo Contribuir
+## How to Contribute
 
-### 1. Crear Branch
+### 1. Create a Branch
 
 ```bash
-git checkout -b feature/nueva-funcionalidad
-# o para fixes
-git checkout -b fix/correccion-bug-ui
+git checkout -b feature/new-functionality
+# or for bug fixes
+git checkout -b fix/ui-bug-fix
 ```
 
-### 2. Desarrollar y Testear
+### 2. Develop and Test
 
 ```bash
-# Ejecutar tests
+# Run tests
 pytest tests/ -v
 
-# Con cobertura
+# Run tests with coverage
 pytest tests/ --cov=src --cov-report=html
 ```
 
-### 3. Actualizar Documentacíłłn
+### 3. Update the Documentation
 
-- `CHANGELOG.md`: Ańlade entrada en la seccíłłn `[Unreleased]`
-- `docs/`: Actualiza si hay cambios de arquitectura o UI
+- `CHANGELOG.md`: Add an entry to the `[Unreleased]` section.
+- `docs/`: Update the documentation when making architectural or UI changes.
 
-### 4. Actualizar Versíłłn
+### 4. Update the Version
 
-Sigue SEMVER (Semáłłforo):
+Follow Semantic Versioning (SemVer):
 
 ```python
 # src/__version__.py
-__version__ = "0.2.0"  # Minor: nueva funcionalidad
-# o
+__version__ = "0.2.0"  # Minor: new functionality
+# or
 __version__ = "0.1.1"  # Patch: bug fix
-# o
-__version__ = "1.0.0"  # Major: release estable
+# or
+__version__ = "1.0.0"  # Major: stable release
 ```
 
 ```toml
@@ -56,43 +56,43 @@ __version__ = "1.0.0"  # Major: release estable
 version = "0.2.0"
 ```
 
-### 5. Commit
+### 5. Commit the Changes
 
 ```bash
 git add src/__version__.py pyproject.toml CHANGELOG.md
 git commit -m "chore: bump version to 0.2.0"
 ```
 
-### 6. Push y Tags
+### 6. Push and Create Tags
 
 ```bash
 git tag -a v0.2.0 -m "Version 0.2.0"
-git push origin feature/nueva-funcionalidad --tags
+git push origin feature/new-functionality --tags
 ```
 
-## Convenciones de Commits
+## Commit Conventions
 
-Basadas en [Conventional Commits](https://www.conventionalcommits.org/):
+The project follows [Conventional Commits](https://www.conventionalcommits.org/):
 
-| Tipo | Descripcíłłn | Ejemplo |
-|------|--------------|---------|
-| `feat:` | Nueva funcionalidad | `feat: add certificate viewer` |
-| `fix:` | Correccíłłn de bug | `fix: StringVar not updating after Browse` |
-| `docs:` | Documentacíłłn | `docs: update ARCHITECTURE.md` |
-| `style:` | Formato (sin cambios de líšgica) | `style: format code with black` |
-| `refactor:` | Refactorizacíłłn | `refactor: separate UI from core logic` |
+| Type | Description | Example |
+|------|-------------|---------|
+| `feat:` | New functionality | `feat: add certificate viewer` |
+| `fix:` | Bug fix | `fix: StringVar not updating after Browse` |
+| `docs:` | Documentation changes | `docs: update ARCHITECTURE.md` |
+| `style:` | Formatting without logic changes | `style: format code with black` |
+| `refactor:` | Code restructuring | `refactor: separate UI from core logic` |
 | `test:` | Tests | `test: add unit tests for ca.py` |
-| `chore:` | Tareas de mantenimiento | `chore: bump version to 0.2.0` |
+| `chore:` | Maintenance tasks | `chore: bump version to 0.2.0` |
 
-### Ejemplos de Mensajes
+### Commit Message Examples
 
 ```bash
-# ✅ Buenos commits
+# Good commits
 git commit -m "feat: add batch certificate generation"
-git commit -m "fix: CA immutability not enforced on project load"
-git commit -m "refactor: extract menu bar to separate module"
+git commit -m "fix: enforce CA immutability when loading a project"
+git commit -m "refactor: extract the menu bar into a separate module"
 
-# ❌ Malos commits
+# Poor commits
 git commit -m "fix stuff"
 git commit -m "updated code"
 git commit -m "changes"
@@ -100,20 +100,20 @@ git commit -m "changes"
 
 ## Testing
 
-### Ejecutar Tests
+### Running Tests
 
 ```bash
-# Todos los tests
+# Run all tests
 pytest tests/ -v
 
-# Tests especíłłficos
+# Run specific tests
 pytest tests/test_core/test_ca.py -v
 
-# Con cobertura
+# Run tests with coverage
 pytest tests/ --cov=src --cov-report=html
 ```
 
-### Escribir Tests
+### Writing Tests
 
 ```python
 # tests/test_core/test_ca.py
@@ -121,25 +121,26 @@ import pytest
 from pathlib import Path
 from src.core.ca import create_ca
 
+
 def test_create_ca_success(tmp_path):
     """Test CA creation with default parameters."""
     result = create_ca(
         ca_folder=tmp_path / "ca",
         common_name="Test CA",
     )
-    
+
     assert result["success"] is True
     assert Path(result["ca_cert_path"]).exists()
     assert Path(result["ca_key_path"]).exists()
 ```
 
-## Estíłło de Cíłłdigo
+## Coding Style
 
 ### Python
 
-- Sigue [PEP 8](https://pep8.org/)
-- Usa [type hints](https://docs.python.org/3/library/typing.html)
-- Docstrings en inglíłłs (formato Google o Sphinx)
+- Follow [PEP 8](https://peps.python.org/pep-0008/).
+- Use [type hints](https://docs.python.org/3/library/typing.html).
+- Write docstrings in English using Google or Sphinx style.
 
 ```python
 def create_ca(
@@ -151,57 +152,60 @@ def create_ca(
     Create and save a complete Certificate Authority.
 
     Args:
-        ca_folder: Folder path to save CA files.
+        ca_folder: Folder path where CA files will be saved.
         key_size: RSA key size in bits.
         country_name: Country code.
 
     Returns:
-        Dictionary with success status and paths.
+        A dictionary containing the success status and file paths.
     """
     ...
 ```
 
-### Formateo Automáłłtico
+### Automatic Formatting
 
 ```bash
-# Black para formato
+# Format the code with Black
 black src/ tests/
 
-# Ruff para linting
+# Run Ruff linting
 ruff check src/ tests/
 ```
 
-## Dependencias
+## Dependencies
 
-### Instalar Dependencias
+### Installing Dependencies
 
 ```bash
-# Produccíłłn
+# Production dependencies
 pip install -r requirements.txt
 
-# Desarrollo
+# Development dependencies
 pip install -e ".[dev]"
 ```
 
-### Ańladir Nueva Dependencia
+### Adding a New Dependency
 
-1. Ańlade a `pyproject.toml`:
+1. Add it to `pyproject.toml`:
+
 ```toml
 [project]
 dependencies = [
     "cryptography>=41.0.0",
-    "nueva-libreria>=1.0.0",
+    "new-library>=1.0.0",
 ]
 ```
 
-2. Actualiza `requirements.txt`:
+2. Update `requirements.txt`:
+
 ```bash
 pip freeze > requirements.txt
 ```
 
-3. Commit:
+3. Create a commit:
+
 ```bash
-git commit -m "chore: add nueva-libreria dependency"
+git commit -m "chore: add new-library dependency"
 ```
 
 ## Debugging
@@ -213,74 +217,75 @@ from src.utils.logger import default_logger
 
 logger = default_logger
 
-def mi_funcion():
-    logger.info("Iniciando proceso...")
+
+def my_function():
+    logger.info("Starting process...")
     try:
         ...
-        logger.success("Proceso completado")
-    except Exception as e:
-        logger.error(f"Error: {e}", exc_info=True)
+        logger.success("Process completed")
+    except Exception as error:
+        logger.error(f"Error: {error}", exc_info=True)
 ```
 
 ### Debugger
 
 ```bash
-# VS Code: F5 para iniciar debugging
+# Visual Studio or VS Code: press F5 to start debugging
 # Python pdb
 import pdb; pdb.set_trace()
 
-# O con Python 3.7+
+# Or, with Python 3.7+
 breakpoint()
 ```
 
 ## Release Process
 
-### Checklist de Release
+### Release Checklist
 
-- [ ] Todos los tests pasan
-- [ ] Documentacíłłn actualizada
-- [ ] CHANGELOG.md actualizado
-- [ ] Versíłłn actualizada en `__version__.py` y `pyproject.toml`
-- [ ] No hay `*_key.pem` en git
-- [ ] Code review completado
+- [ ] All tests pass.
+- [ ] Documentation is up to date.
+- [ ] `CHANGELOG.md` is up to date.
+- [ ] The version is updated in `__version__.py` and `pyproject.toml`.
+- [ ] No `*_key.pem` files are tracked by Git.
+- [ ] Code review is complete.
 
-### Comandos de Release
+### Release Commands
 
 ```bash
-# 1. Actualizar versíłłn
-# Editar src/__version__.py y pyproject.toml
+# 1. Update the version
+# Edit src/__version__.py and pyproject.toml
 
-# 2. Actualizar CHANGELOG
-# Editar CHANGELOG.md
+# 2. Update the changelog
+# Edit CHANGELOG.md
 
-# 3. Commit
+# 3. Commit the changes
 git add src/__version__.py pyproject.toml CHANGELOG.md
 git commit -m "chore: bump version to 0.2.0"
 
-# 4. Tag
+# 4. Create a tag
 git tag -a v0.2.0 -m "Version 0.2.0 - New features"
 
-# 5. Push
+# 5. Push the release
 git push origin main --tags
 ```
 
 ## Troubleshooting
 
-### Problemas Comunes
+### Common Problems
 
 **Error: `ModuleNotFoundError: No module named 'src.core'`**
 
-Solucíłłn: Asegurar que `src/__init__.py` existe y que el path es correcto.
+Solution: Make sure that `src/__init__.py` exists and that the import path is correct.
 
 **Error: `StringVar not updating`**
 
-Solucíłłn: Usar `variable.set(value)` explíłłcitamente, no solo asignar.
+Solution: Explicitly call `variable.set(value)` instead of assigning the value directly.
 
 **Error: `CA files not found`**
 
-Solucíłłn: Verificar que `has_valid_ca()` devuelve `True` antes de generar certificados.
+Solution: Verify that `has_valid_ca()` returns `True` before generating certificates.
 
-## Recursos
+## Resources
 
 - [Python Documentation](https://docs.python.org/3/)
 - [Cryptography Documentation](https://cryptography.io/)
