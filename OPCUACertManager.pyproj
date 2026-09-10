@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>41c7d6a7-6fc1-4d5e-8ec4-4259190e2675</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>run.py</StartupFile>
+    <StartupFile>src\ui\main_window.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,7 +22,6 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="run.py" />
     <Compile Include="src\core\batch_generator.py" />
     <Compile Include="src\core\ca.py" />
     <Compile Include="src\core\client_cert.py" />
@@ -31,17 +30,16 @@
     <Compile Include="src\core\__init__.py" />
     <Compile Include="src\ui\main_window.py" />
     <Compile Include="src\ui\menu_bar.py" />
+    <Compile Include="src\ui\settings_dialog.py" />
     <Compile Include="src\ui\start_screen.py" />
     <Compile Include="src\ui\__init__.py" />
+    <Compile Include="src\utils\cert_export.py" />
     <Compile Include="src\utils\config.py" />
+    <Compile Include="src\utils\i18n.py" />
     <Compile Include="src\utils\logger.py" />
     <Compile Include="src\utils\__init__.py" />
     <Compile Include="src\__init__.py" />
     <Compile Include="src\__version__.py" />
-    <Compile Include="tests\test_phase1_complete.py" />
-    <Compile Include="tests\test_phase2_ui.py" />
-    <Compile Include="tests\test_project_manager.py" />
-    <Compile Include="tests\test_recent_projects.py" />
     <Compile Include="tests\__init__.py" />
   </ItemGroup>
   <ItemGroup>
@@ -59,13 +57,10 @@
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
     <Content Include=".gitignore.txt" />
-    <Content Include="batch_certificates_example.csv" />
+    <Content Include="docs\batch_certificates_example.csv" />
     <Content Include="CHANGELOG.md" />
     <Content Include="docs\ARCHITECTURE.md" />
     <Content Include="docs\DEVELOPMENT.md" />
-    <Content Include="docs\MIGRATION_GUIDE.md" />
-    <Content Include="docs\README.md" />
-    <Content Include="docs\UPDATE_SUMMARY_v0.1.0.md" />
     <Content Include="docs\USER_GUIDE.md" />
     <Content Include="LICENSE.txt" />
     <Content Include="proyectos_recientes.json" />
@@ -75,6 +70,8 @@
     <Content Include="src\core\__pycache__\batch_generator.cpython-311.pyc" />
     <Content Include="src\core\__pycache__\ca.cpython-311.pyc" />
     <Content Include="src\core\__pycache__\__init__.cpython-311.pyc" />
+    <Content Include="src\locales\en.json" />
+    <Content Include="src\locales\es.json" />
     <Content Include="src\ui\__pycache__\main_window.cpython-311.pyc" />
     <Content Include="src\ui\__pycache__\__init__.cpython-311.pyc" />
     <Content Include="src\__pycache__\__init__.cpython-311.pyc" />
@@ -85,6 +82,7 @@
     <Folder Include="src\" />
     <Folder Include="src\core\" />
     <Folder Include="src\core\__pycache__\" />
+    <Folder Include="src\locales\" />
     <Folder Include="src\ui\" />
     <Folder Include="src\ui\__pycache__\" />
     <Folder Include="src\utils\" />

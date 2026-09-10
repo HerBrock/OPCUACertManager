@@ -1,0 +1,127 @@
+{
+  "app": {
+    "title": "OPC UA Certificate Manager",
+    "version": "Version"
+  },
+  "menu": {
+    "files": "Files",
+    "options": "Options",
+    "help": "Help",
+    "new_project": "New Project",
+    "open_project": "Open Project...",
+    "recent_projects": "Recent Projects",
+    "exit": "Exit",
+    "global_settings": "Global Settings...",
+    "language": "Language",
+    "preferences": "Preferences...",
+    "documentation": "Documentation",
+    "view_logs": "View Logs",
+    "about": "About..."
+  },
+  "settings": {
+    "dialog": {
+      "title": "Global Settings"
+    },
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "language": "Language",
+    "language_select": "Language:",
+    "export": "Certificate Export",
+    "export_format": "Default Format:",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Settings Saved",
+    "saved_message": "Settings have been saved successfully.\n\nLanguage change will take effect on next restart.",
+    "error": "Error",
+    "error_save": "Error saving settings:"
+  },
+  "theme": {
+    "light": "Light Mode",
+    "dark": "Dark Mode"
+  },
+  "lang": {
+    "en": "English",
+    "es": "Españłłł",
+    "de": "Deutsch",
+    "fr": "Françłłais",
+    "pt": "Portuguęś",
+    "it": "Italiano"
+  },
+  "tabs": {
+    "ca": "CA Certificate",
+    "server": "Server Certificate",
+    "client": "Client Certificate",
+    "batch": "Batch Certificates",
+    "log": "📋 Certificate Log"
+  },
+  "labels": {
+    "country": "Country:",
+    "state": "State / Province:",
+    "locality": "Locality:",
+    "organization": "Organization:",
+    "common_name": "Common Name (CN):",
+    "validity_days": "Validity (days):",
+    "key_size": "Key size:",
+    "san": "SAN (one per line):",
+    "folder": "Folder:",
+    "browse": "Browse...",
+    "create": "Create",
+    "certificate": "Certificate"
+  },
+  "buttons": {
+    "create_ca": "Create CA Certificate",
+    "create_server": "Create Server Certificate",
+    "create_client": "Create Client Certificate",
+    "start_batch": "Start Batch Generation",
+    "import_csv": "Import CSV",
+    "browse_csv": "Browse CSV...",
+    "refresh": "Refresh",
+    "export_csv": "Export to CSV...",
+    "clear_log": "Clear Log"
+  },
+  "messages": {
+    "ca_required": "CA Required",
+    "ca_required_message": "This project does not have a Certificate Authority (CA).\n\nYou must create a CA before generating server or client certificates.\n\nThe CA will be immutable once created.",
+    "ca_exists": "CA already exists. Cannot create a new CA for this project.",
+    "ca_immutable": "✓ CA is immutable and cannot be modified or recreated.",
+    "batch_complete": "Batch completed: {successes} successes, {failures} failures",
+    "log_cleared": "Log cleared.",
+    "export_success": "Export Successful",
+    "export_success_message": "Certificate log exported to:\n\n{path}",
+    "export_failed": "Export Failed",
+    "export_failed_message": "Error exporting log:\n\n{error}",
+    "overwrite": "Certificate Already Exists",
+    "overwrite_message": "The {type} certificate already exists:\n\n{path}\n\nYes: overwrite the existing certificate.\nNo: skip this operation.\nCancel: cancel this operation."
+  },
+  "errors": {
+    "invalid_value": "Invalid Value",
+    "integer_required": "{field} must be an integer.",
+    "positive_required": "{field} must be greater than zero.",
+    "ca_not_found": "CA not found",
+    "ca_not_found_message": "Certificate Authority files not found. Please create a CA first."
+  },
+  "batch": {
+    "type": "Certificate Type:",
+    "output_folder": "Output Folder:",
+    "csv_file": "CSV File:",
+    "csv_format": "CSV format: cert_name;Country;State/Province;Locality;Organization;CN;SAN;Validity days;key size",
+    "preview": "Certificate List Preview",
+    "name": "Certificate Name",
+    "quantity": "Quantity",
+    "status": "Status"
+  },
+  "log": {
+    "title": "Certificate Log",
+    "history": "Certificate History",
+    "timestamp": "Timestamp",
+    "name": "Certificate Name",
+    "type": "Type",
+    "status": "Status",
+    "expiry": "Expiration Date",
+    "subject": "Subject"
+  },
+  "about": {
+    "title": "About OPC UA Certificate Manager",
+    "description": "A professional X.509 certificate manager\nfor OPC UA environments.\n\nCreated for learning purposes.\n\nLicense: MIT"
+  }
+}

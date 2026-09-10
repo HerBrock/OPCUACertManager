@@ -51,3 +51,4 @@ htmlcov/
 # *.der
 # Visual Studio local files
 .vs/
+/docs/Comandos.txt

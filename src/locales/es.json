@@ -1,0 +1,127 @@
+{
+  "app": {
+    "title": "Gestor de Certificados OPC UA",
+    "version": "Versión"
+  },
+  "menu": {
+    "files": "Archivo",
+    "options": "Opciones",
+    "help": "Ayuda",
+    "new_project": "Nuevo Proyecto",
+    "open_project": "Abrir Proyecto...",
+    "recent_projects": "Proyectos Recientes",
+    "exit": "Salir",
+    "global_settings": "Configuración Global...",
+    "language": "Idioma",
+    "preferences": "Preferencias...",
+    "documentation": "Documentación",
+    "view_logs": "Ver Logs",
+    "about": "Acerca de..."
+  },
+  "settings": {
+    "dialog": {
+      "title": "Configuración Global"
+    },
+    "appearance": "Apariencia",
+    "theme": "Tema",
+    "language": "Idioma",
+    "language_select": "Idioma:",
+    "export": "Exportación de Certificados",
+    "export_format": "Formato Predeterminado:",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "saved": "Configuración Guardada",
+    "saved_message": "La configuración se ha guardado correctamente.\n\nEl cambio de idioma se aplicará en el próximo reinicio.",
+    "error": "Error",
+    "error_save": "Error al guardar la configuración:"
+  },
+  "theme": {
+    "light": "Modo Claro",
+    "dark": "Modo Oscuro"
+  },
+  "lang": {
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch",
+    "fr": "Français",
+    "pt": "Português",
+    "it": "Italiano"
+  },
+  "tabs": {
+    "ca": "Certificado CA",
+    "server": "Certificado de Servidor",
+    "client": "Certificado de Cliente",
+    "batch": "Certificados por Lote",
+    "log": "📋 Log de Certificados"
+  },
+  "labels": {
+    "country": "País:",
+    "state": "Estado / Provincia:",
+    "locality": "Localidad:",
+    "organization": "Organización:",
+    "common_name": "Nombre Común (CN):",
+    "validity_days": "Validez (días):",
+    "key_size": "Tamaño de clave:",
+    "san": "SAN (uno por línea):",
+    "folder": "Carpeta:",
+    "browse": "Examinar...",
+    "create": "Crear",
+    "certificate": "Certificado"
+  },
+  "buttons": {
+    "create_ca": "Crear Certificado CA",
+    "create_server": "Crear Certificado de Servidor",
+    "create_client": "Crear Certificado de Cliente",
+    "start_batch": "Iniciar Generación por Lote",
+    "import_csv": "Importar CSV",
+    "browse_csv": "Buscar CSV...",
+    "refresh": "Actualizar",
+    "export_csv": "Exportar a CSV...",
+    "clear_log": "Limpiar Log"
+  },
+  "messages": {
+    "ca_required": "CA Requerida",
+    "ca_required_message": "Este proyecto no tiene una Autoridad de Certificación (CA).\n\nDebe crear una CA antes de generar certificados de servidor o cliente.\n\nLa CA será inmutable una vez creada.",
+    "ca_exists": "La CA ya existe. No se puede crear una nueva CA para este proyecto.",
+    "ca_immutable": "✓ La CA es inmutable y no puede ser modificada o recreada.",
+    "batch_complete": "Lote completado: {successes} éxitos, {failures} fallos",
+    "log_cleared": "Log limpiado.",
+    "export_success": "Exportación Exitosa",
+    "export_success_message": "Log de certificados exportado a:\n\n{path}",
+    "export_failed": "Error de Exportación",
+    "export_failed_message": "Error al exportar el log:\n\n{error}",
+    "overwrite": "Certificado Ya Existe",
+    "overwrite_message": "El certificado {type} ya existe:\n\n{path}\n\nSí: sobrescribir el certificado existente.\nNo: saltar esta operación.\nCancelar: cancelar esta operación."
+  },
+  "errors": {
+    "invalid_value": "Valor Inválido",
+    "integer_required": "{field} debe ser un número entero.",
+    "positive_required": "{field} debe ser mayor que cero.",
+    "ca_not_found": "CA no encontrada",
+    "ca_not_found_message": "Archivos de Autoridad de Certificación no encontrados. Por favor cree una CA primero."
+  },
+  "batch": {
+    "type": "Tipo de Certificado:",
+    "output_folder": "Carpeta de Salida:",
+    "csv_file": "Archivo CSV:",
+    "csv_format": "Formato CSV: cert_name;Country;State/Province;Locality;Organization;CN;SAN;Validity days;key size",
+    "preview": "Vista Previa de Certificados",
+    "name": "Nombre de Certificado",
+    "quantity": "Cantidad",
+    "status": "Estado"
+  },
+  "log": {
+    "title": "Log de Certificados",
+    "history": "Historial de Certificados",
+    "timestamp": "Marca de Tiempo",
+    "name": "Nombre de Certificado",
+    "type": "Tipo",
+    "status": "Estado",
+    "expiry": "Fecha de Expiración",
+    "subject": "Sujeto"
+  },
+  "about": {
+    "title": "Acerca de Gestor de Certificados OPC UA",
+    "description": "Un gestor profesional de certificados X.509\npara entornos OPC UA.\n\nCreado con propósitos educativos.\n\nLicencia: MIT"
+  }
+}
