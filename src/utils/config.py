@@ -10,6 +10,7 @@ from typing import Any
 
 
 DEFAULT_CONFIG = {
+    # Certificate defaults
     "country": "ES",
     "state": "Madrid",
     "locality": "Madrid",
@@ -23,13 +24,18 @@ DEFAULT_CONFIG = {
     "key_size_ca": 2048,
     "key_size_server": 2048,
     "key_size_client": 2048,
+
+    # v0.2.0: Global settings
+    "theme": "light",  # "light" or "dark"
+    "language": "en",  # "en" or "es"
+    "default_export_format": "PEM",  # "PEM" or "DER"
 }
 
 
 def get_config_path() -> Path:
     """
     Get the path to the global config.json file.
-    
+
     Returns:
         Path to config.json in the application root.
     """
@@ -39,29 +45,29 @@ def get_config_path() -> Path:
 def load_config() -> dict[str, Any]:
     """
     Load global configuration from config.json.
-    
+
     If the file doesn't exist or has errors, return default configuration.
-    
+
     Returns:
         Dictionary with global configuration.
     """
     config_path = get_config_path()
-    
+
     if not config_path.exists():
         return DEFAULT_CONFIG.copy()
-    
+
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        
+
         if not isinstance(data, dict):
             return DEFAULT_CONFIG.copy()
-        
+
         # Merge with defaults
         config = DEFAULT_CONFIG.copy()
         config.update(data)
         return config
-    
+
     except Exception:
         return DEFAULT_CONFIG.copy()
 
@@ -69,11 +75,44 @@ def load_config() -> dict[str, Any]:
 def save_config(config: dict[str, Any]) -> None:
     """
     Save global configuration to config.json.
-    
+
     Parameters:
         config: Dictionary with configuration to save.
     """
     config_path = get_config_path()
-    
+
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
+
+
+def get_theme() -> str:
+    """
+    Get current theme setting.
+
+    Returns:
+        "light" or "dark"
+    """
+    config = load_config()
+    return config.get("theme", "light")
+
+
+def get_language() -> str:
+    """
+    Get current language setting.
+
+    Returns:
+        Language code (e.g., "en", "es")
+    """
+    config = load_config()
+    return config.get("language", "en")
+
+
+def get_export_format() -> str:
+    """
+    Get default export format setting.
+
+    Returns:
+        "PEM" or "DER"
+    """
+    config = load_config()
+    return config.get("default_export_format", "PEM")

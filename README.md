@@ -1,236 +1,202 @@
 # OPC UA Certificate Manager
 
-**Version:** 0.1.0  
-**Description:** Professional X.509 certificate manager for OPC UA environments
+**Version:** 0.2.0  
+**Description:** Professional X.509 certificate manager for OPC UA environments.
 
-A Python application to generate, manage, and validate X.509 certificates for OPC UA (Kepware, Ignition, Ewon, etc.).
+OPC UA Certificate Manager is a Python desktop application for generating and managing X.509 certificates for industrial OPC UA environments such as Kepware, Ignition, and Ewon.
 
-## Features
+## v0.2.0 features
 
-### v0.1.1 Highlights
+- Dark and light themes configured through **Options → Global Settings**.
+- English and Spanish UI translations using extensible JSON files in `src/locales/`.
+- PEM and DER certificate export.
+- Certificate filename extensions `.pem`, `.cer`, and `.crt`.
+- Enhanced semicolon-delimited batch CSV files with per-row certificate parameters.
+- Batch validation that warns about invalid rows and skips them safely.
+- Output-path display with Browse controls and project-level persistence.
+- Certificate history logging for CA, server, client, and batch operations.
+- Immutable CA per project.
 
-- ✅ **Project-based workflow**: Multiple independent projects (e.g., "Kepware_Plant", "Ignition_Lab")
-- ✅ **Immutable CA per project**: Certificate Authority created at project creation, cannot be modified
-- ✅ **Professional UI**: Menu bar (Files, Options, Help), real-time activity log
-- ✅ **Certificate generation**:
-  - Self-signed Certificate Authority (CA)
-  - OPC UA server certificates (signed by CA)
-  - OPC UA client certificates (signed by CA)
-  - Batch generation from CSV
-- ✅ **Certificate Log Viewer**: View and export certificate history
-- ✅ **Security**: Private keys (`*_key.pem`) automatically ignored by `.gitignore`
+## Security model
 
-## Quick Start
+The application must load a valid project CA before creating server or client certificates. Private keys are always saved as unencrypted PEM files with a `_key.pem` suffix; protect these files with operating-system permissions and never commit them to GitHub.
 
-### 1. Installation
+DER and PEM refer to the public certificate encoding. The private key remains PEM because this is the application's stable and documented key-storage format. In production, consider encrypted private-key storage and an appropriate key-management process.
 
-```bash
-# Clone repository
+## Requirements
+
+- Python 3.14 or later.
+- `cryptography>=41.0.0`.
+- Windows, Linux, or another platform supported by Tkinter.
+- Visual Studio 2026 is recommended for development but is not required at runtime.
+
+## Installation
+
+```powershell
 git clone https://github.com/HerBrock/OPCUACertManager.git
 cd OPCUACertManager
-
-# Create virtual environment (recommended)
 python -m venv .venv
-.venv\Scripts\Activate  # Windows
-
-# Install dependencies
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-### 2. Run Application
+On Linux, activate the environment with `source .venv/bin/activate`.
+
+## Run the application
+
+Use the project entry point configured in the repository. If the repository starts the start screen directly, run:
 
 ```bash
-python src/ui/main_window.py
+python -m src.ui.start_screen
 ```
 
-### 3. Create First Project
+If a separate application launcher exists, use that launcher instead. The `src/core/` modules contain business logic and should not be coupled to Tkinter.
 
-1. Click **"Create New Project"**
-2. Enter project name (e.g., "Kepware_Plant")
-3. Select parent folder
-4. **Configure CA** (required fields marked with *):
-   - `Common Name (CN)*`: e.g., "Kepware CA"
-   - `Organization*`: e.g., "MyCompany"
-   - `Country*`: e.g., "ES"
-5. Click **"Create CA"**
+## Project workflow
 
-### 4. Generate Certificates
+1. Start the application.
+2. Create a project or open an existing valid project.
+3. Create the project CA. The CA is immutable after creation.
+4. Create server or client certificates.
+5. Select the output path with **Browse...** when the default path is not appropriate.
+6. Review the certificate log after each operation.
+7. Copy certificates to the required OPC UA product while protecting the associated private keys.
 
-Now you can generate:
-- Server certificates (for OPC UA servers)
-- Client certificates (for OPC UA clients)
-- Batch certificates (from CSV file)
+Default project folders are:
 
-## Project Structure
-
+```text
+<project>/certs/ca
+<project>/certs/server
+<project>/certs/client
 ```
+
+## Global settings
+
+Open **Options → Global Settings** to configure:
+
+- **Theme:** `light` or `dark`.
+- **Language:** English or Spanish. Additional languages can be added by placing another JSON file in `src/locales/`.
+- **Default export format:** PEM or DER.
+
+Global settings are stored in the root `config.json`. Certificate output folders are project settings and are stored in the project's `config_proyecto.json`.
+
+## Certificate export
+
+The certificate encoding and filename extension are independent choices:
+
+| Selection | Encoding | Typical use |
+|---|---|---|
+| PEM `.pem` | Base64 text with PEM markers | Default and easiest to inspect manually |
+| DER `.cer` | Binary ASN.1 | Products requiring binary X.509 |
+| PEM `.cer` | Base64 text | Products that expect `.cer` but accept PEM |
+| DER `.crt` | Binary ASN.1 | Products that expect `.crt` but require DER |
+| PEM `.crt` | Base64 text | Products that expect `.crt` but accept PEM |
+
+When integrating with Kepware, Ignition, Ewon, or another product, check whether it expects PEM or DER rather than relying only on the extension.
+
+## Batch CSV format
+
+The batch importer uses semicolon (`;`) as the delimiter. There is one certificate per data row. The header must use these columns:
+
+```csv
+cert_name;Country;State/Province;Locality;Organization;CN;SAN;Validity days;key size
+```
+
+Example:
+
+```csv
+cert_name;Country;State/Province;Locality;Organization;CN;SAN;Validity days;key size
+Kepware_Server;AR;Buenos Aires;Coronel Suarez;MyCompany;kepware-server.local;DNS:kepware-server.local,IP:192.168.1.100,URI:urn:example:kepware;365;2048
+Ignition_Client;AR;Buenos Aires;Coronel Suarez;MyCompany;ignition-client;DNS:ignition-client.local;730;4096
+```
+
+### Required values
+
+- `cert_name`: Output certificate base name. It must not contain path separators.
+- `Country`: Country code, normally two letters such as `AR` or `ES`.
+- `State/Province`: State or province.
+- `Locality`: City or locality.
+- `Organization`: Organization name.
+- `CN`: Common Name.
+- `SAN`: Optional. Use comma-separated values with `DNS:`, `IP:`, or `URI:` prefixes.
+- `Validity days`: Positive integer.
+- `key size`: `2048` or `4096`.
+
+Rows with missing or invalid required values are not generated. The application shows a warning containing the row number and validation reason, then processes only valid rows. Every successfully created certificate is written to the project certificate log.
+
+## Project structure
+
+```text
 OPCUACertManager/
 ├── src/
-│   ├── __version__.py          # Version: 0.1.0
-│   ├── core/                   # Business logic
+│   ├── __version__.py
+│   ├── core/                 # Certificate and project business logic
 │   │   ├── ca.py
-│   │   ├── server_cert.py
 │   │   ├── client_cert.py
+│   │   ├── server_cert.py
 │   │   ├── batch_generator.py
 │   │   └── project_manager.py
-│   ├── ui/                     # User interface
+│   ├── ui/                   # Tkinter presentation layer
 │   │   ├── start_screen.py
 │   │   ├── main_window.py
-│   │   └── menu_bar.py
-│   └── utils/                  # Utilities
-│       ├── config.py
-│       └── logger.py
-├── tests/                      # Unit tests
-├── docs/                       # Documentation
-│   ├── ARCHITECTURE.md
-│   ├── DEVELOPMENT.md
-│   └── USER_GUIDE.md
+│   │   ├── menu_bar.py
+│   │   └── settings_dialog.py
+│   ├── utils/                # Configuration, translations, and export helpers
+│   │   ├── config.py
+│   │   ├── cert_export.py
+│   │   ├── i18n.py
+│   │   └── logger.py
+│   └── locales/
+│       ├── en.json
+│       └── es.json
+├── tests/
+├── docs/
 ├── CHANGELOG.md
 ├── pyproject.toml
 ├── requirements.txt
 └── README.md
 ```
 
-## Usage Examples
-
-### Example 1: Single Server Certificate for Kepware
-
-```
-1. Create project "Kepware_Plant"
-2. Configure CA (immutable)
-3. Go to "Server Certificate" tab
-   - Common Name: "kepware-server.local"
-   - SAN: DNS:kepware, IP:192.168.1.100
-4. Click "Create Server Certificate"
-5. Copy certificates to Kepware
-```
-
-### Example 2: Batch Client Certificates for Ignition
-
-**CSV file (batch_certificates.csv):**
-```csv
-nombre_certificado,cantidad
-client_hmi_01,1
-client_hmi_02,1
-client_scada,1
-```
-
-**Steps:**
-```
-1. Create project "Ignition_Lab"
-2. Configure CA
-3. Go to "Batch Certificates" tab
-   - Select CSV file
-   - Type: "client"
-4. Click "Start Batch Generation"
-5. Copy certificates to Ignition
-```
-
-## Menu Bar
-
-### Files
-- **New Project** (Ctrl+N): Create new project
-- **Open Project...** (Ctrl+O): Open existing project
-- **Recent Projects**: Last 10 projects
-- **Exit** (Alt+F4): Close application
-
-### Options
-- **Global Settings...**: Global configuration (future)
-- **Language**: Language selector (future)
-- **Preferences...**: Preferences (future)
-
-### Help
-- **Documentation**: Open README.md
-- **View Logs**: View certificate log
-- **About...**: Version and license information
-
-## Certificate Log
-
-The **📋 Certificate Log** tab shows:
-- All generated certificates (historical, immutable)
-- Timestamp, name, type, status, expiration date, subject
-- Export to CSV functionality
-
-## Security Notes
-
-### Private Keys
-
-⚠️ **CRITICAL**: Never upload `*_key.pem` files to GitHub or share them publicly.
-
-- `.gitignore` automatically ignores all `*_key.pem` files
-- Private keys allow impersonation of CA/server/client
-- Use OS permissions to protect certificate folders
-
-### CA Immutability
-
-- CA is created once per project and cannot be changed
-- If CA private key is lost, create a new project
-- Use separate projects for different environments (Dev/Prod)
-
-## Requirements
-
-- Python 3.14 or later
-- `cryptography>=41.0.0` (installed via `requirements.txt`)
-- Visual Studio 2026 (optional, for development)
-
 ## Development
 
-### Run Tests
+Run the test suite from the repository root:
 
 ```bash
 pytest tests/ -v
 ```
 
-### Code Style
+Recommended checks:
 
 ```bash
-# Format code
-black src/ tests/
-
-# Lint code
 ruff check src/ tests/
+python -m compileall src tests
 ```
 
-### Version Management
+Keep business logic in `src/core/` and presentation logic in `src/ui/`. New public functions require English docstrings and type hints. Use `pathlib.Path`, validate user input, and confirm before overwriting existing certificate files.
 
-To update version (follows SEMVER):
+## Versioning and Git
 
-1. Update `src/__version__.py`:
-```python
-__version__ = "0.2.0"  # Minor: new feature
-```
+The repository uses Semantic Versioning. For v0.2.0:
 
-2. Update `pyproject.toml`:
-```toml
-version = "0.2.0"
-```
-
-3. Update `CHANGELOG.md` with new section
-
-4. Commit and tag:
 ```bash
-git add src/__version__.py pyproject.toml CHANGELOG.md
-git commit -m "chore: bump version to 0.2.0"
+git pull --ff-only
+git checkout -b feature/v0.2.0
+git add src/ docs/ README.md CHANGELOG.md pyproject.toml
+git commit -m "feat: implement v0.2.0 certificate manager features"
+git push -u origin feature/v0.2.0
 git tag -a v0.2.0 -m "Version 0.2.0"
-git push --tags
+git push origin v0.2.0
 ```
+
+Never stage private keys, generated certificates, project secrets, or local configuration containing sensitive data.
 
 ## Documentation
 
-- **[USER_GUIDE.md](docs/USER_GUIDE.md)**: Complete user guide with troubleshooting
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: System architecture and design decisions
-- **[DEVELOPMENT.md](docs/DEVELOPMENT.md)**: Developer guide and contribution guidelines
+- [User guide](docs/USER_GUIDE.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Development guide](docs/DEVELOPMENT.md)
+- [Changelog](CHANGELOG.md)
 
 ## License
 
-MIT License - See [LICENSE.txt](LICENSE.txt) for details.
-
-## Acknowledgments
-
-- [Cryptography Library](https://cryptography.io/)
-- [OPC UA Foundation](https://opcfoundation.org/)
-- Created for learning purposes
-
----
-
-**For questions or issues, please open an issue on GitHub.**
+GPT3 License. See [LICENSE.txt](LICENSE.txt).
